@@ -14,9 +14,6 @@ else
 CFLAGS += -fPIC -O3 -Wall -I$(INCDIR) -L$(LIBDIR)
 endif
 
-# dummy setup to make Gentoo happy
-$(LDFLAGS)
-
 LIBNAME = capstone
 
 BIN_EXT =
