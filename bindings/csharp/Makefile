@@ -1,19 +1,9 @@
+# Capstone Disassembler Engine
+# By Nguyen Anh Quynh <aquynh@gmail.com>, 2013>
+
 all:
-	mkdir lib
-	# libcapstone.so (32-bit version) needs to be placed here
-	mkdir lib/x86
-	# libcapstone.so (64-bit version) needs to be placed here
-	mkdir lib/x64
-	mkdir bin
-	mcs Capstone/capstone.cs Capstone/capstone_const.cs Capstone/arm*.cs Capstone/mips*.cs Capstone/x86*.cs -t:library -d:MONO -out:lib/capstone.dll
-	mcs Test/test.cs -r:capstone.dll -lib:lib/ -out:bin/test.exe
-	mcs Test_X86/test_x86.cs -r:capstone.dll -lib:lib/ -out:bin/test_x86.exe
-	mcs Test_Mips/test_mips.cs -r:capstone.dll -lib:lib/ -out:bin/test_mips.exe
-	mcs Test_Arm/test_arm.cs -r:capstone.dll -lib:lib/ -out:bin/test_arm.exe
-	mcs Test_Arm64/test_arm64.cs -r:capstone.dll -lib:lib/ -out:bin/test_arm64.exe
-	chmod +x bin/*.exe
+	mcs test.cs capstone.cs
 
 clean:
-	rm -rf lib
-	rm -rf bin
+	rm -rf test.exe *.so *.dll
 

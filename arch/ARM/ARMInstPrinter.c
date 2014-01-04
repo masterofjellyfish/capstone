@@ -125,7 +125,6 @@ static void set_mem_access(MCInst *MI, bool status)
 	if (MI->csh->detail != CS_OPT_ON)
 		return;
 
-<<<<<<< HEAD
 	MI->csh->doing_mem = status;
 	if (status) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_MEM;
@@ -133,18 +132,9 @@ static void set_mem_access(MCInst *MI, bool status)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.index = ARM_REG_INVALID;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.scale = 1;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.disp = 0;
-=======
-	doing_mem = status;
-	if (doing_mem) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_MEM;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.base = ARM_REG_INVALID;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.index = ARM_REG_INVALID;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.scale = 1;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.disp = 0;
->>>>>>> origin/master
 	} else {
 		// done, create the next operand slot
-		MI->pub_insn.arm.op_count++;
+		MI->flat_insn.arm.op_count++;
 	}
 }
 
@@ -179,13 +169,8 @@ static void printRegImmShift(MCInst *MI, SStream *O, ARM_AM_ShiftOpc ShOpc,
 
 	//assert (!(ShOpc == ARM_AM_ror && !ShImm) && "Cannot have ror #0");
 	SStream_concat(O, ARM_AM_getShiftOpcStr(ShOpc));
-<<<<<<< HEAD
 	if (MI->csh->detail)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count - 1].shift.type = (arm_shifter)ShOpc;
-=======
-	if (MI->detail)
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count - 1].shift.type = (arm_shifter)ShOpc;
->>>>>>> origin/master
 
 	if (ShOpc != ARM_AM_rrx) {
 		SStream_concat(O, " ");
@@ -194,13 +179,8 @@ static void printRegImmShift(MCInst *MI, SStream *O, ARM_AM_ShiftOpc ShOpc,
 		SStream_concat(O, "#%u", translateShiftImm(ShImm));
 		if (_UseMarkup)
 			SStream_concat(O, ">");
-<<<<<<< HEAD
 		if (MI->csh->detail)
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count - 1].shift.value = translateShiftImm(ShImm);
-=======
-		if (MI->detail)
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count - 1].shift.value = translateShiftImm(ShImm);
->>>>>>> origin/master
 	}
 }
 
@@ -243,31 +223,31 @@ static name_map insn_update_flgs[] = {
 	{ ARM_INS_UMULL, "umulls" },
 };
 
-void ARM_post_printer(csh ud, cs_insn *pub_insn, char *insn_asm)
+void ARM_post_printer(csh ud, cs_insn *insn, char *insn_asm)
 {
 	if (((cs_struct *)ud)->detail != CS_OPT_ON)
 		return;
 
 	// check if this insn requests write-back
 	if (strrchr(insn_asm, '!') != NULL) {
-		pub_insn->arm.writeback = true;
+		insn->detail->arm.writeback = true;
 	}
 
 	// check if this insn requests update flags
-	if (pub_insn->arm.update_flags == false) {
+	if (insn->detail->arm.update_flags == false) {
 		// some insn still update flags, regardless of tabgen info
 		int i;
 
 		for (i = 0; i < ARR_SIZE(insn_update_flgs); i++) {
-			if (pub_insn->id == insn_update_flgs[i].id &&
+			if (insn->id == insn_update_flgs[i].id &&
 					!strncmp(insn_asm, insn_update_flgs[i].name,
 						strlen(insn_update_flgs[i].name))) {
-				pub_insn->arm.update_flags = true;
+				insn->detail->arm.update_flags = true;
 				// we have to update regs_write array as well
 				int j;
-				for (j = 0; j < ARR_SIZE(pub_insn->regs_write); j++) {
-					if (pub_insn->regs_write[j] == 0) {
-						pub_insn->regs_write[j] = ARM_REG_CPSR;
+				for (j = 0; j < ARR_SIZE(insn->detail->regs_write); j++) {
+					if (insn->detail->regs_write[j] == 0) {
+						insn->detail->regs_write[j] = ARM_REG_CPSR;
 						break;
 					}
 				}
@@ -328,48 +308,27 @@ void ARM_printInst(MCInst *MI, SStream *O, void *Info)
 
 							SStream_concat(O, "\t");
 							printRegName(O, MCOperand_getReg(Dst));
-<<<<<<< HEAD
 							if (MI->csh->detail) {
 								MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 								MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(Dst);
 								MI->flat_insn.arm.op_count++;
-=======
-							if (MI->detail) {
-								MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-								MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(Dst);
-								MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 							}
 
 							SStream_concat(O, ", ");
 							printRegName(O, MCOperand_getReg(MO1));
 
-<<<<<<< HEAD
 							if (MI->csh->detail) {
 								MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 								MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MO1);
 								MI->flat_insn.arm.op_count++;
-=======
-							if (MI->detail) {
-								MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-								MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MO1);
-								MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 							}
 
 							SStream_concat(O, ", ");
 							printRegName(O, MCOperand_getReg(MO2));
-<<<<<<< HEAD
 							if (MI->csh->detail) {
 								MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 								MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MO2);
 								MI->flat_insn.arm.op_count++;
-=======
-							if (MI->detail) {
-								MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-								MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MO2);
-								MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 							}
 							//assert(ARM_AM_getSORegOffset(MO3.getImm()) == 0);
 							return;
@@ -387,32 +346,18 @@ void ARM_printInst(MCInst *MI, SStream *O, void *Info)
 
 							SStream_concat(O, "\t");
 							printRegName(O, MCOperand_getReg(Dst));
-<<<<<<< HEAD
 							if (MI->csh->detail) {
 								MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 								MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(Dst);
 								MI->flat_insn.arm.op_count++;
-=======
-							if (MI->detail) {
-								MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-								MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(Dst);
-								MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 							}
 
 							SStream_concat(O, ", ");
 							printRegName(O, MCOperand_getReg(MO1));
-<<<<<<< HEAD
 							if (MI->csh->detail) {
 								MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 								MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MO1);
 								MI->flat_insn.arm.op_count++;
-=======
-							if (MI->detail) {
-								MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-								MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MO1);
-								MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 							}
 
 							if (ARM_AM_getSORegShOp(MCOperand_getImm(MO2)) == ARM_AM_rrx) {
@@ -427,15 +372,10 @@ void ARM_printInst(MCInst *MI, SStream *O, void *Info)
 							else
 								SStream_concat(O, "#%u", tmp);
 							SStream_concat(O, markup(">"));
-<<<<<<< HEAD
 							if (MI->csh->detail) {
 								MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count - 1].shift.type =
-=======
-							if (MI->detail) {
-								MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count - 1].shift.type =
->>>>>>> origin/master
 									(arm_shifter)ARM_AM_getSORegShOp(MCOperand_getImm(MO2));
-								MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count - 1].shift.value = tmp;
+								MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count - 1].shift.value = tmp;
 							}
 							return;
 						}
@@ -463,17 +403,10 @@ void ARM_printInst(MCInst *MI, SStream *O, void *Info)
 							printPredicateOperand(MI, 4, O);
 							SStream_concat(O, "\t{");
 							printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, 1)));
-<<<<<<< HEAD
 							if (MI->csh->detail) {
 								MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 								MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, 1));
 								MI->flat_insn.arm.op_count++;
-=======
-							if (MI->detail) {
-								MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-								MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, 1));
-								MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 							}
 							SStream_concat(O, "}");
 							return;
@@ -503,17 +436,10 @@ void ARM_printInst(MCInst *MI, SStream *O, void *Info)
 							printPredicateOperand(MI, 5, O);
 							SStream_concat(O, "\t{");
 							printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, 0)));
-<<<<<<< HEAD
 							if (MI->csh->detail) {
 								MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 								MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, 0));
 								MI->flat_insn.arm.op_count++;
-=======
-							if (MI->detail) {
-								MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-								MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, 0));
-								MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 							}
 							SStream_concat(O, "}");
 							return;
@@ -558,17 +484,10 @@ void ARM_printInst(MCInst *MI, SStream *O, void *Info)
 							 printPredicateOperand(MI, 1, O);
 							 SStream_concat(O, "\t");
 							 printRegName(O, BaseReg);
-<<<<<<< HEAD
 							 if (MI->csh->detail) {
 								 MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 								 MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = BaseReg;
 								 MI->flat_insn.arm.op_count++;
-=======
-							 if (MI->detail) {
-								 MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-								 MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = BaseReg;
-								 MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 							 }
 							 if (Writeback)
 								 SStream_concat(O, "!");
@@ -624,23 +543,16 @@ static void printOperand(MCInst *MI, unsigned OpNo, SStream *O)
 	if (MCOperand_isReg(Op)) {
 		unsigned Reg = MCOperand_getReg(Op);
 		printRegName(O, Reg);
-<<<<<<< HEAD
 		if (MI->csh->detail) {
 			if (MI->csh->doing_mem) {
 				if (MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.base == ARM_REG_INVALID)
 					MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.base = Reg;
-=======
-		if (MI->detail) {
-			if (doing_mem) {
-				if (MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.base == ARM_REG_INVALID)
-					MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.base = Reg;
->>>>>>> origin/master
 				else
-					MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.index = Reg;
+					MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.index = Reg;
 			} else {
-				MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-				MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = Reg;
-				MI->pub_insn.arm.op_count++;
+				MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
+				MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = Reg;
+				MI->flat_insn.arm.op_count++;
 			}
 		}
 	} else if (MCOperand_isImm(Op)) {
@@ -672,19 +584,13 @@ static void printOperand(MCInst *MI, unsigned OpNo, SStream *O)
 			SStream_concat(O, "#-0x%x", -imm);
 
 		SStream_concat(O, markup(">"));
-<<<<<<< HEAD
 		if (MI->csh->detail) {
 			if (MI->csh->doing_mem)
 				MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.disp = imm;
-=======
-		if (MI->detail) {
-			if (doing_mem)
-				MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.disp = imm;
->>>>>>> origin/master
 			else {
-				MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_IMM;
-				MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = imm;
-				MI->pub_insn.arm.op_count++;
+				MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_IMM;
+				MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = imm;
+				MI->flat_insn.arm.op_count++;
 			}
 		}
 	}
@@ -727,18 +633,12 @@ static void printSORegRegOperand(MCInst *MI, unsigned OpNum, SStream *O)
 
 	printRegName(O, MCOperand_getReg(MO1));
 
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MO1);
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MO1);
->>>>>>> origin/master
 
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].shift.type = (MCOperand_getImm(MO3) & 7) + ARM_SFT_ASR_REG - 1;
-		MI->pub_insn.arm.op_count++;
+		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].shift.type = (MCOperand_getImm(MO3) & 7) + ARM_SFT_ASR_REG - 1;
+		MI->flat_insn.arm.op_count++;
 	}
 
 	// Print the shift opc.
@@ -750,13 +650,8 @@ static void printSORegRegOperand(MCInst *MI, unsigned OpNum, SStream *O)
 
 	SStream_concat(O, " ");
 	printRegName(O, MCOperand_getReg(MO2));
-<<<<<<< HEAD
 	if (MI->csh->detail)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count - 1].shift.value = MCOperand_getReg(MO2);
-=======
-	if (MI->detail)
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count - 1].shift.value = MCOperand_getReg(MO2);
->>>>>>> origin/master
 	//assert(ARM_AM_getSORegOffset(MO3.getImm()) == 0);
 }
 
@@ -766,21 +661,12 @@ static void printSORegImmOperand(MCInst *MI, unsigned OpNum, SStream *O)
 	MCOperand *MO2 = MCInst_getOperand(MI, OpNum+1);
 
 	printRegName(O, MCOperand_getReg(MO1));
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MO1);
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].shift.type = MCOperand_getImm(MO2) & 7;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].shift.value = MCOperand_getImm(MO2) >> 3;
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MO1);
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].shift.type = MCOperand_getImm(MO2) & 7;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].shift.value = MCOperand_getImm(MO2) >> 3;
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 
 	// Print the shift opc.
@@ -802,13 +688,8 @@ static void printAM2PreOrOffsetIndexOp(MCInst *MI, unsigned Op, SStream *O)
 	set_mem_access(MI, true);
 
 	printRegName(O, MCOperand_getReg(MO1));
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
->>>>>>> origin/master
 	}
 
 	if (!MCOperand_getReg(MO2)) {
@@ -819,15 +700,9 @@ static void printAM2PreOrOffsetIndexOp(MCInst *MI, unsigned Op, SStream *O)
 				SStream_concat(O, "#%s0x%x", ARM_AM_getAddrOpcStr(getAM2Op(MCOperand_getImm(MO3))), tmp);
 			else
 				SStream_concat(O, "#%s%u", ARM_AM_getAddrOpcStr(getAM2Op(MCOperand_getImm(MO3))), tmp);
-<<<<<<< HEAD
 			if (MI->csh->detail) {
 				MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].shift.type = (arm_shifter)getAM2Op(MCOperand_getImm(MO3));
 				MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].shift.value = tmp;
-=======
-			if (MI->detail) {
-				MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].shift.type = (arm_shifter)getAM2Op(MCOperand_getImm(MO3));
-				MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].shift.value = tmp;
->>>>>>> origin/master
 			}
 			SStream_concat(O, markup(">"));
 		}
@@ -839,13 +714,8 @@ static void printAM2PreOrOffsetIndexOp(MCInst *MI, unsigned Op, SStream *O)
 	SStream_concat(O, ", ");
 	SStream_concat(O, ARM_AM_getAddrOpcStr(getAM2Op(MCOperand_getImm(MO3))));
 	printRegName(O, MCOperand_getReg(MO2));
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.index = MCOperand_getReg(MO2);
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.index = MCOperand_getReg(MO2);
->>>>>>> origin/master
 	}
 
 	printRegImmShift(MI, O, getAM2ShiftOpc(MCOperand_getImm(MO3)),
@@ -861,21 +731,12 @@ static void printAddrModeTBB(MCInst *MI, unsigned Op, SStream *O)
 	SStream_concat(O, "%s[", markup("<mem:"));
 	set_mem_access(MI, true);
 	printRegName(O, MCOperand_getReg(MO1));
-<<<<<<< HEAD
 	if (MI->csh->detail)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
 	SStream_concat(O, ", ");
 	printRegName(O, MCOperand_getReg(MO2));
 	if (MI->csh->detail)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.index = MCOperand_getReg(MO2);
-=======
-	if (MI->detail)
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
-	SStream_concat(O, ", ");
-	printRegName(O, MCOperand_getReg(MO2));
-	if (MI->detail)
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.index = MCOperand_getReg(MO2);
->>>>>>> origin/master
 	SStream_concat(O, "]%s", markup(">"));
 	set_mem_access(MI, false);
 }
@@ -887,7 +748,6 @@ static void printAddrModeTBH(MCInst *MI, unsigned Op, SStream *O)
 	SStream_concat(O, "%s[", markup("<mem:"));
 	set_mem_access(MI, true);
 	printRegName(O, MCOperand_getReg(MO1));
-<<<<<<< HEAD
 	if (MI->csh->detail)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
 	SStream_concat(O, ", ");
@@ -898,18 +758,6 @@ static void printAddrModeTBH(MCInst *MI, unsigned Op, SStream *O)
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].shift.type = ARM_SFT_LSL;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].shift.value = 1;
-=======
-	if (MI->detail)
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
-	SStream_concat(O, ", ");
-	printRegName(O, MCOperand_getReg(MO2));
-	if (MI->detail)
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.index = MCOperand_getReg(MO2);
-	SStream_concat(O, ", lsl %s #1%s]%s", markup("<imm:"), markup(">"), markup(">"));
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].shift.type = ARM_SFT_LSL;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].shift.value = 1;
->>>>>>> origin/master
 	}
 	set_mem_access(MI, false);
 }
@@ -941,34 +789,20 @@ static void printAddrMode2OffsetOperand(MCInst *MI, unsigned OpNum, SStream *O)
 			SStream_concat(O, "%s#%s%u%s", markup("<imm:"),
 					ARM_AM_getAddrOpcStr(getAM2Op(MCOperand_getImm(MO2))), ImmOffs,
 					markup(">"));
-<<<<<<< HEAD
 		if (MI->csh->detail) {
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_IMM;
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = ImmOffs;
 			MI->flat_insn.arm.op_count++;
-=======
-		if (MI->detail) {
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_IMM;
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = ImmOffs;
-			MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 		}
 		return;
 	}
 
 	SStream_concat(O, ARM_AM_getAddrOpcStr(getAM2Op(MCOperand_getImm(MO2))));
 	printRegName(O, MCOperand_getReg(MO1));
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MO1);
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MO1);
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 
 	printRegImmShift(MI, O, getAM2ShiftOpc(MCOperand_getImm(MO2)),
@@ -989,30 +823,18 @@ static void printAM3PostIndexOp(MCInst *MI, unsigned Op, SStream *O)
 	SStream_concat(O, "%s[", markup("<mem:"));
 	set_mem_access(MI, true);
 	printRegName(O, MCOperand_getReg(MO1));
-<<<<<<< HEAD
 	if (MI->csh->detail)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
-=======
-	if (MI->detail)
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
->>>>>>> origin/master
 	SStream_concat(O, "], %s", markup(">"));
 	set_mem_access(MI, false);
 
 	if (MCOperand_getReg(MO2)) {
 		SStream_concat(O, "%c", (char)op);
 		printRegName(O, MCOperand_getReg(MO2));
-<<<<<<< HEAD
 		if (MI->csh->detail) {
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MO2);
 			MI->flat_insn.arm.op_count++;
-=======
-		if (MI->detail) {
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MO2);
-			MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 		}
 		return;
 	}
@@ -1027,20 +849,15 @@ static void printAM3PostIndexOp(MCInst *MI, unsigned Op, SStream *O)
 				ARM_AM_getAddrOpcStr(op), ImmOffs,
 				markup(">"));
 
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_IMM;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_IMM;
->>>>>>> origin/master
 
 		if (op)
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = ImmOffs;
+			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = ImmOffs;
 		else
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = -ImmOffs;
+			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = -ImmOffs;
 
-		MI->pub_insn.arm.op_count++;
+		MI->flat_insn.arm.op_count++;
 	}
 }
 
@@ -1055,26 +872,16 @@ static void printAM3PreOrOffsetIndexOp(MCInst *MI, unsigned Op, SStream *O,
 	SStream_concat(O, "%s[", markup("<mem:"));
 	set_mem_access(MI, true);
 	printRegName(O, MCOperand_getReg(MO1));
-<<<<<<< HEAD
 	if (MI->csh->detail)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
-=======
-	if (MI->detail)
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
->>>>>>> origin/master
 
 	if (MCOperand_getReg(MO2)) {
 		SStream_concat(O, ", %s", ARM_AM_getAddrOpcStr(op));
 		printRegName(O, MCOperand_getReg(MO2));
-<<<<<<< HEAD
 		if (MI->csh->detail) {
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.index = MCOperand_getReg(MO2);
-=======
-		if (MI->detail) {
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.index = MCOperand_getReg(MO2);
->>>>>>> origin/master
 			if (op)
-				MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.scale = -1;
+				MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.scale = -1;
 		}
 		SStream_concat(O, "]%s", markup(">"));
 		set_mem_access(MI, false);
@@ -1095,9 +902,9 @@ static void printAM3PreOrOffsetIndexOp(MCInst *MI, unsigned Op, SStream *O,
 
 	if (MI->csh->detail) {
 		if (op)
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.disp = MCOperand_getImm(MO3);
+			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.disp = MCOperand_getImm(MO3);
 		else
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.disp = -MCOperand_getImm(MO3);
+			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.disp = -MCOperand_getImm(MO3);
 	}
 
 	SStream_concat(O, "]%s", markup(">"));
@@ -1133,17 +940,10 @@ static void printAddrMode3OffsetOperand(MCInst *MI, unsigned OpNum, SStream *O)
 	if (MCOperand_getReg(MO1)) {
 		SStream_concat(O, ARM_AM_getAddrOpcStr(op));
 		printRegName(O, MCOperand_getReg(MO1));
-<<<<<<< HEAD
 		if (MI->csh->detail) {
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = MCOperand_getReg(MO1);
 			MI->flat_insn.arm.op_count++;
-=======
-		if (MI->detail) {
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = MCOperand_getReg(MO1);
-			MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 		}
 		return;
 	}
@@ -1157,20 +957,15 @@ static void printAddrMode3OffsetOperand(MCInst *MI, unsigned OpNum, SStream *O)
 		SStream_concat(O, "%s#%s%u%s", markup("<imm:"),
 				ARM_AM_getAddrOpcStr(op), ImmOffs,
 				markup(">"));
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_IMM;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_IMM;
->>>>>>> origin/master
 
 		if (op)
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = ImmOffs;
+			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = ImmOffs;
 		else
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = -ImmOffs;
+			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = -ImmOffs;
 
-		MI->pub_insn.arm.op_count++;
+		MI->flat_insn.arm.op_count++;
 	}
 }
 
@@ -1184,17 +979,10 @@ static void printPostIdxImm8Operand(MCInst *MI, unsigned OpNum, SStream *O)
 	else
 		SStream_concat(O, "%s#%s%u%s", markup("<imm:"), ((Imm & 256) ? "" : "-"),
 				(Imm & 0xff), markup(">"));
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_IMM;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = Imm & 0xff;
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_IMM;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = Imm & 0xff;
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 }
 
@@ -1205,17 +993,10 @@ static void printPostIdxRegOperand(MCInst *MI, unsigned OpNum, SStream *O)
 
 	SStream_concat(O, (MCOperand_getImm(MO2) ? "" : "-"));
 	printRegName(O, MCOperand_getReg(MO1));
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MO1);
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MO1);
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 }
 
@@ -1268,26 +1049,16 @@ static void printAddrMode6Operand(MCInst *MI, unsigned OpNum, SStream *O)
 	SStream_concat(O, "%s[", markup("<mem:"));
 	set_mem_access(MI, true);
 	printRegName(O, MCOperand_getReg(MO1));
-<<<<<<< HEAD
 	if (MI->csh->detail)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
-=======
-	if (MI->detail)
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
->>>>>>> origin/master
 	unsigned tmp = MCOperand_getImm(MO2);
 	if (tmp) {
 		if (tmp << 3 > HEX_THRESHOLD)
 			SStream_concat(O, ":0x%x", (tmp << 3));
 		else
 			SStream_concat(O, ":%u", (tmp << 3));
-<<<<<<< HEAD
 		if (MI->csh->detail)
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.disp = tmp << 3;
-=======
-		if (MI->detail)
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.disp = tmp << 3;
->>>>>>> origin/master
 	}
 	SStream_concat(O, "]%s", markup(">"));
 	set_mem_access(MI, false);
@@ -1299,13 +1070,8 @@ static void printAddrMode7Operand(MCInst *MI, unsigned OpNum, SStream *O)
 	SStream_concat(O, "%s[", markup("<mem:"));
 	set_mem_access(MI, true);
 	printRegName(O, MCOperand_getReg(MO1));
-<<<<<<< HEAD
 	if (MI->csh->detail)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
-=======
-	if (MI->detail)
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
->>>>>>> origin/master
 	SStream_concat(O, "]%s", markup(">"));
 	set_mem_access(MI, false);
 }
@@ -1318,17 +1084,10 @@ static void printAddrMode6OffsetOperand(MCInst *MI, unsigned OpNum, SStream *O)
 	else {
 		SStream_concat(O, ", ");
 		printRegName(O, MCOperand_getReg(MO));
-<<<<<<< HEAD
 		if (MI->csh->detail) {
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MO);
 			MI->flat_insn.arm.op_count++;
-=======
-		if (MI->detail) {
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MO);
-			MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 		}
 	}
 }
@@ -1351,7 +1110,6 @@ static void printBitfieldInvMaskImmOperand(MCInst *MI, unsigned OpNum, SStream *
 	else
 		SStream_concat(O, ", %s#%u%s", markup("<imm:"), width, markup(">"));
 
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_IMM;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = lsb;
@@ -1359,15 +1117,6 @@ static void printBitfieldInvMaskImmOperand(MCInst *MI, unsigned OpNum, SStream *
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_IMM;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = width;
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_IMM;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = lsb;
-		MI->pub_insn.arm.op_count++;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_IMM;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = width;
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 }
 
@@ -1397,30 +1146,18 @@ static void printShiftImmOperand(MCInst *MI, unsigned OpNum, SStream *O)
 			SStream_concat(O, ", asr %s#0x%x%s", markup("<imm:"), tmp, markup(">"));
 		else
 			SStream_concat(O, ", asr %s#%u%s", markup("<imm:"), tmp, markup(">"));
-<<<<<<< HEAD
 		if (MI->csh->detail) {
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count - 1].shift.type = ARM_SFT_ASR;
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count - 1].shift.value = tmp;
-=======
-		if (MI->detail) {
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count - 1].shift.type = ARM_SFT_ASR;
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count - 1].shift.value = tmp;
->>>>>>> origin/master
 		}
 	} else if (Amt) {
 		if (Amt > HEX_THRESHOLD)
 			SStream_concat(O, ", lsl %s#0x%x%s", markup("<imm:"), Amt, markup(">"));
 		else
 			SStream_concat(O, ", lsl %s#%u%s", markup("<imm:"), Amt, markup(">"));
-<<<<<<< HEAD
 		if (MI->csh->detail) {
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count - 1].shift.type = ARM_SFT_LSL;
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count - 1].shift.value = Amt;
-=======
-		if (MI->detail) {
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count - 1].shift.type = ARM_SFT_LSL;
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count - 1].shift.value = Amt;
->>>>>>> origin/master
 		}
 	}
 }
@@ -1435,15 +1172,9 @@ static void printPKHLSLShiftImm(MCInst *MI, unsigned OpNum, SStream *O)
 		SStream_concat(O, ", lsl %s#0x%x%s", markup("<imm:"), Imm, markup(">"));
 	else
 		SStream_concat(O, ", lsl %s#%u%s", markup("<imm:"), Imm, markup(">"));
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count - 1].shift.type = ARM_SFT_LSL;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count - 1].shift.value = Imm;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count - 1].shift.type = ARM_SFT_LSL;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count - 1].shift.value = Imm;
->>>>>>> origin/master
 	}
 }
 
@@ -1458,15 +1189,9 @@ static void printPKHASRShiftImm(MCInst *MI, unsigned OpNum, SStream *O)
 		SStream_concat(O, ", asr %s#0x%x%s", markup("<imm:"), Imm, markup(">"));
 	else
 		SStream_concat(O, ", asr %s#%u%s", markup("<imm:"), Imm, markup(">"));
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count - 1].shift.type = ARM_SFT_ASR;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count - 1].shift.value = Imm;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count - 1].shift.type = ARM_SFT_ASR;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count - 1].shift.value = Imm;
->>>>>>> origin/master
 	}
 }
 
@@ -1478,17 +1203,10 @@ static void printRegisterList(MCInst *MI, unsigned OpNum, SStream *O)
 	for (i = OpNum, e = MCInst_getNumOperands(MI); i != e; ++i) {
 		if (i != OpNum) SStream_concat(O, ", ");
 		printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, i)));
-<<<<<<< HEAD
 		if (MI->csh->detail) {
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, i));
 			MI->flat_insn.arm.op_count++;
-=======
-		if (MI->detail) {
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, i));
-			MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 		}
 	}
 	SStream_concat(O, "}");
@@ -1499,7 +1217,6 @@ static void printGPRPairOperand(MCInst *MI, unsigned OpNum, SStream *O,
 {
 	unsigned Reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum));
 	printRegName(O, MCRegisterInfo_getSubReg(MRI, Reg, ARM_gsub_0));
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCRegisterInfo_getSubReg(MRI, Reg, ARM_gsub_0);
@@ -1511,19 +1228,6 @@ static void printGPRPairOperand(MCInst *MI, unsigned OpNum, SStream *O,
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCRegisterInfo_getSubReg(MRI, Reg, ARM_gsub_1);
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCRegisterInfo_getSubReg(MRI, Reg, ARM_gsub_0);
-		MI->pub_insn.arm.op_count++;
-	}
-	SStream_concat(O, ", ");
-	printRegName(O, MCRegisterInfo_getSubReg(MRI, Reg, ARM_gsub_1));
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCRegisterInfo_getSubReg(MRI, Reg, ARM_gsub_1);
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 }
 
@@ -1555,17 +1259,10 @@ static void printCPSIFlag(MCInst *MI, unsigned OpNum, SStream *O)
 	if (IFlags == 0)
 		SStream_concat(O, "none");
 
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_IMM;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = IFlags;
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_IMM;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = IFlags;
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 }
 
@@ -1658,24 +1355,14 @@ static void printPredicateOperand(MCInst *MI, unsigned OpNum, SStream *O)
 	// Handle the undefined 15 CC value here for printing so we don't abort().
 	if ((unsigned)CC == 15) {
 		SStream_concat(O, "<und>");
-<<<<<<< HEAD
 		if (MI->csh->detail)
 			MI->flat_insn.arm.cc = ARM_CC_INVALID;
-=======
-		if (MI->detail)
-			MI->pub_insn.arm.cc = ARM_CC_INVALID;
->>>>>>> origin/master
 	} else {
 		if (CC != ARMCC_AL) {
 			SStream_concat(O, ARMCC_ARMCondCodeToString(CC));
 		}
-<<<<<<< HEAD
 		if (MI->csh->detail)
 			MI->flat_insn.arm.cc = CC + 1;
-=======
-		if (MI->detail)
-			MI->pub_insn.arm.cc = CC + 1;
->>>>>>> origin/master
 	}
 }
 
@@ -1684,13 +1371,8 @@ static void printMandatoryPredicateOperand(MCInst *MI, unsigned OpNum, SStream *
 {
 	ARMCC_CondCodes CC = (ARMCC_CondCodes)MCOperand_getImm(MCInst_getOperand(MI, OpNum));
 	SStream_concat(O, ARMCC_ARMCondCodeToString(CC));
-<<<<<<< HEAD
 	if (MI->csh->detail)
 		MI->flat_insn.arm.cc = CC + 1;
-=======
-	if (MI->detail)
-		MI->pub_insn.arm.cc = CC + 1;
->>>>>>> origin/master
 }
 
 static void printSBitModifierOperand(MCInst *MI, unsigned OpNum, SStream *O)
@@ -1698,13 +1380,8 @@ static void printSBitModifierOperand(MCInst *MI, unsigned OpNum, SStream *O)
 	if (MCOperand_getReg(MCInst_getOperand(MI, OpNum))) {
 		//assert(MCOperand_getReg(MCInst_getOperand(MI, OpNum)) == ARM_CPSR &&
 		//       "Expect ARM CPSR register!");
-<<<<<<< HEAD
 		if (MI->csh->detail)
 			MI->flat_insn.arm.update_flags = true;
-=======
-		if (MI->detail)
-			MI->pub_insn.arm.update_flags = true;
->>>>>>> origin/master
 		SStream_concat(O, "s");
 	}
 }
@@ -1716,19 +1393,13 @@ static void printNoHashImmediate(MCInst *MI, unsigned OpNum, SStream *O)
 		SStream_concat(O, "0x%x", tmp);
 	else
 		SStream_concat(O, "%u", tmp);
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		if (MI->csh->doing_mem) {
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.disp = tmp;
-=======
-	if (MI->detail) {
-		if (doing_mem) {
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.disp = tmp;
->>>>>>> origin/master
 		} else {
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_IMM;
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = tmp;
-			MI->pub_insn.arm.op_count++;
+			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_IMM;
+			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = tmp;
+			MI->flat_insn.arm.op_count++;
 		}
 	}
 }
@@ -1736,34 +1407,20 @@ static void printNoHashImmediate(MCInst *MI, unsigned OpNum, SStream *O)
 static void printPImmediate(MCInst *MI, unsigned OpNum, SStream *O)
 {
 	SStream_concat(O, "p%u", MCOperand_getImm(MCInst_getOperand(MI, OpNum)));
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_PIMM;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = MCOperand_getImm(MCInst_getOperand(MI, OpNum));
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_PIMM;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = MCOperand_getImm(MCInst_getOperand(MI, OpNum));
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 }
 
 static void printCImmediate(MCInst *MI, unsigned OpNum, SStream *O)
 {
 	SStream_concat(O, "c%u", MCOperand_getImm(MCInst_getOperand(MI, OpNum)));
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_CIMM;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = MCOperand_getImm(MCInst_getOperand(MI, OpNum));
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_CIMM;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = MCOperand_getImm(MCInst_getOperand(MI, OpNum));
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 }
 
@@ -1774,17 +1431,10 @@ static void printCoprocOptionImm(MCInst *MI, unsigned OpNum, SStream *O)
 		SStream_concat(O, "{0x%x}", tmp);
 	else
 		SStream_concat(O, "{%u}", tmp);
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_IMM;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = tmp;
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_IMM;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = tmp;
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 }
 
@@ -1797,17 +1447,10 @@ static void printAdrLabelOperand(MCInst *MI, unsigned OpNum, SStream *O, unsigne
 	SStream_concat(O, markup("<imm:"));
 	if (OffImm == INT32_MIN) {
 		SStream_concat(O, "#-0");
-<<<<<<< HEAD
 		if (MI->csh->detail) {
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_IMM;
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = 0;
 			MI->flat_insn.arm.op_count++;
-=======
-		if (MI->detail) {
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_IMM;
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = 0;
-			MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 		}
 	} else {
 		if (OffImm < 0)
@@ -1818,17 +1461,10 @@ static void printAdrLabelOperand(MCInst *MI, unsigned OpNum, SStream *O, unsigne
 			else
 				SStream_concat(O, "#%u", OffImm);
 		}
-<<<<<<< HEAD
 		if (MI->csh->detail) {
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_IMM;
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = OffImm;
 			MI->flat_insn.arm.op_count++;
-=======
-		if (MI->detail) {
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_IMM;
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = OffImm;
-			MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 		}
 	}
 	SStream_concat(O, markup(">"));
@@ -1842,17 +1478,10 @@ static void printThumbS4ImmOperand(MCInst *MI, unsigned OpNum, SStream *O)
 		SStream_concat(O, "%s#0x%x", markup("<imm:"), tmp);
 	else
 		SStream_concat(O, "%s#%u", markup("<imm:"), tmp);
-<<<<<<< HEAD
 		if (MI->csh->detail) {
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_IMM;
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = tmp;
 			MI->flat_insn.arm.op_count++;
-=======
-		if (MI->detail) {
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_IMM;
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = tmp;
-			MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 		}
 	SStream_concat(O, markup(">"));
 }
@@ -1867,17 +1496,10 @@ static void printThumbSRImm(MCInst *MI, unsigned OpNum, SStream *O)
 	else
 		SStream_concat(O, "%s#%u", markup("<imm:"), tmp);
 
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_IMM;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = tmp;
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_IMM;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = tmp;
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 	SStream_concat(O, markup(">"));
 }
@@ -1915,24 +1537,14 @@ static void printThumbAddrModeRROperand(MCInst *MI, unsigned Op, SStream *O)
 	SStream_concat(O, "[");
 	set_mem_access(MI, true);
 	printRegName(O, MCOperand_getReg(MO1));
-<<<<<<< HEAD
 	if (MI->csh->detail)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
-=======
-	if (MI->detail)
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
->>>>>>> origin/master
 	unsigned RegNum = MCOperand_getReg(MO2);
 	if (RegNum) {
 		SStream_concat(O, ", ");
 		printRegName(O, RegNum);
-<<<<<<< HEAD
 		if (MI->csh->detail)
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.index = RegNum;
-=======
-		if (MI->detail)
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.index = RegNum;
->>>>>>> origin/master
 	}
 	SStream_concat(O, "]");
 	set_mem_access(MI, false);
@@ -1954,13 +1566,8 @@ static void printThumbAddrModeImm5SOperand(MCInst *MI, unsigned Op, SStream *O,
 	SStream_concat(O, "[");
 	set_mem_access(MI, true);
 	printRegName(O, MCOperand_getReg(MO1));
-<<<<<<< HEAD
 	if (MI->csh->detail)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
-=======
-	if (MI->detail)
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
->>>>>>> origin/master
 	unsigned ImmOffs = MCOperand_getImm(MO2);
 	if (ImmOffs) {
 		unsigned tmp = ImmOffs * Scale;
@@ -1969,13 +1576,8 @@ static void printThumbAddrModeImm5SOperand(MCInst *MI, unsigned Op, SStream *O,
 			SStream_concat(O, "#0x%x", tmp);
 		else
 			SStream_concat(O, "#%u", tmp);
-<<<<<<< HEAD
 		if (MI->csh->detail)
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.disp = tmp;
-=======
-		if (MI->detail)
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.disp = tmp;
->>>>>>> origin/master
 		SStream_concat(O, markup(">"));
 	}
 	SStream_concat(O, "]");
@@ -2014,17 +1616,10 @@ static void printT2SOOperand(MCInst *MI, unsigned OpNum, SStream *O)
 
 	unsigned Reg = MCOperand_getReg(MO1);
 	printRegName(O, Reg);
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = Reg;
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = Reg;
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 
 	// Print the shift opc.
@@ -2049,13 +1644,8 @@ static void printAddrModeImm12Operand(MCInst *MI, unsigned OpNum,
 	set_mem_access(MI, true);
 	printRegName(O, MCOperand_getReg(MO1));
 
-<<<<<<< HEAD
 	if (MI->csh->detail)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
-=======
-	if (MI->detail)
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
->>>>>>> origin/master
 
 	int32_t OffImm = (int32_t)MCOperand_getImm(MO2);
 	bool isSub = OffImm < 0;
@@ -2070,13 +1660,8 @@ static void printAddrModeImm12Operand(MCInst *MI, unsigned OpNum,
 		else
 			SStream_concat(O, ", %s#%u%s", markup("<imm:"), OffImm, markup(">"));
 	}
-<<<<<<< HEAD
 	if (MI->csh->detail)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.disp = OffImm;
-=======
-	if (MI->detail)
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.disp = OffImm;
->>>>>>> origin/master
 	SStream_concat(O, "]%s", markup(">"));
 	set_mem_access(MI, false);
 }
@@ -2091,13 +1676,8 @@ static void printT2AddrModeImm8Operand(MCInst *MI, unsigned OpNum, SStream *O,
 	set_mem_access(MI, true);
 
 	printRegName(O, MCOperand_getReg(MO1));
-<<<<<<< HEAD
 	if (MI->csh->detail)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
-=======
-	if (MI->detail)
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
->>>>>>> origin/master
 
 	int32_t OffImm = (int32_t)MCOperand_getImm(MO2);
 	bool isSub = OffImm < 0;
@@ -2114,13 +1694,8 @@ static void printT2AddrModeImm8Operand(MCInst *MI, unsigned OpNum, SStream *O,
 			SStream_concat(O, ", %s#%u%s", markup("<imm:"), OffImm, markup(">"));
 	}
 
-<<<<<<< HEAD
 	if (MI->csh->detail)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.disp = OffImm;
-=======
-	if (MI->detail)
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.disp = OffImm;
->>>>>>> origin/master
 	SStream_concat(O, "]%s", markup(">"));
 	set_mem_access(MI, false);
 }
@@ -2140,13 +1715,8 @@ static void printT2AddrModeImm8s4Operand(MCInst *MI,
 	SStream_concat(O, "[");
 	set_mem_access(MI, true);
 	printRegName(O, MCOperand_getReg(MO1));
-<<<<<<< HEAD
 	if (MI->csh->detail)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
-=======
-	if (MI->detail)
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
->>>>>>> origin/master
 
 	int32_t OffImm = (int32_t)MCOperand_getImm(MO2);
 	bool isSub = OffImm < 0;
@@ -2164,13 +1734,8 @@ static void printT2AddrModeImm8s4Operand(MCInst *MI,
 		else
 			SStream_concat(O, ", %s#%u%s", markup("<imm:"), OffImm, markup(">"));
 	}
-<<<<<<< HEAD
 	if (MI->csh->detail)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.disp = OffImm;
-=======
-	if (MI->detail)
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.disp = OffImm;
->>>>>>> origin/master
 
 	SStream_concat(O, "]%s", markup(">"));
 	set_mem_access(MI, false);
@@ -2185,13 +1750,8 @@ static void printT2AddrModeImm0_1020s4Operand(MCInst *MI, unsigned OpNum, SStrea
 	SStream_concat(O, "[");
 	set_mem_access(MI, true);
 	printRegName(O, MCOperand_getReg(MO1));
-<<<<<<< HEAD
 	if (MI->csh->detail)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
-=======
-	if (MI->detail)
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
->>>>>>> origin/master
 	if (MCOperand_getImm(MO2)) {
 		SStream_concat(O, ", ");
 		SStream_concat(O, markup("<imm:"));
@@ -2203,13 +1763,8 @@ static void printT2AddrModeImm0_1020s4Operand(MCInst *MI, unsigned OpNum, SStrea
 		else
 			SStream_concat(O, "#%u", tmp);
 		SStream_concat(O, markup(">"));
-<<<<<<< HEAD
 		if (MI->csh->detail)
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.disp = tmp;
-=======
-		if (MI->detail)
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.disp = tmp;
->>>>>>> origin/master
 	}
 	SStream_concat(O, "]%s", markup(">"));
 	set_mem_access(MI, false);
@@ -2223,17 +1778,10 @@ static void printT2AddrModeImm8OffsetOperand(MCInst *MI,
 	SStream_concat(O, ", %s", markup("<imm:"));
 	if (OffImm == INT32_MIN) {
 		SStream_concat(O, "#-0%s", markup(">"));
-<<<<<<< HEAD
 		if (MI->csh->detail) {
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_IMM;
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = 0;
 			MI->flat_insn.arm.op_count++;
-=======
-		if (MI->detail) {
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_IMM;
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = 0;
-			MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 		}
 	} else {
 		if (OffImm < 0)
@@ -2244,17 +1792,10 @@ static void printT2AddrModeImm8OffsetOperand(MCInst *MI,
 			else
 				SStream_concat(O, "#%u%s", OffImm, markup(">"));
 		}
-<<<<<<< HEAD
 		if (MI->csh->detail) {
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_IMM;
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = OffImm;
 			MI->flat_insn.arm.op_count++;
-=======
-		if (MI->detail) {
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_IMM;
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = OffImm;
-			MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 		}
 	}
 }
@@ -2270,17 +1811,10 @@ static void printT2AddrModeImm8s4OffsetOperand(MCInst *MI,
 	SStream_concat(O, ", %s", markup("<imm:"));
 	if (OffImm == INT32_MIN) {
 		SStream_concat(O, "#-0%s", markup(">"));
-<<<<<<< HEAD
 		if (MI->csh->detail) {
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_IMM;
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = 0;
 			MI->flat_insn.arm.op_count++;
-=======
-		if (MI->detail) {
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_IMM;
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = 0;
-			MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 		}
 	} else {
 		if (OffImm < 0)
@@ -2291,17 +1825,10 @@ static void printT2AddrModeImm8s4OffsetOperand(MCInst *MI,
 			else
 				SStream_concat(O, "#%u%s", OffImm, markup(">"));
 		}
-<<<<<<< HEAD
 		if (MI->csh->detail) {
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_IMM;
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = OffImm;
 			MI->flat_insn.arm.op_count++;
-=======
-		if (MI->detail) {
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_IMM;
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = OffImm;
-			MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 		}
 	}
 }
@@ -2316,24 +1843,14 @@ static void printT2AddrModeSoRegOperand(MCInst *MI,
 	SStream_concat(O, "%s[", markup("<mem:"));
 	set_mem_access(MI, true);
 	printRegName(O, MCOperand_getReg(MO1));
-<<<<<<< HEAD
 	if (MI->csh->detail)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
-=======
-	if (MI->detail)
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.base = MCOperand_getReg(MO1);
->>>>>>> origin/master
 
 	//assert(MCOperand_getReg(MO2.getReg() && "Invalid so_reg load / store address!");
 	SStream_concat(O, ", ");
 	printRegName(O, MCOperand_getReg(MO2));
-<<<<<<< HEAD
 	if (MI->csh->detail)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].mem.index = MCOperand_getReg(MO2);
-=======
-	if (MI->detail)
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].mem.index = MCOperand_getReg(MO2);
->>>>>>> origin/master
 
 	unsigned ShAmt = MCOperand_getImm(MO3);
 	if (ShAmt) {
@@ -2342,15 +1859,9 @@ static void printT2AddrModeSoRegOperand(MCInst *MI,
 		SStream_concat(O, markup("<imm:"));
 		SStream_concat(O, "#%d", ShAmt);
 		SStream_concat(O, markup(">"));
-<<<<<<< HEAD
 		if (MI->csh->detail) {
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count - 1].shift.type = ARM_SFT_LSL;
 			MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count - 1].shift.value = ShAmt;
-=======
-		if (MI->detail) {
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count - 1].shift.type = ARM_SFT_LSL;
-			MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count - 1].shift.value = ShAmt;
->>>>>>> origin/master
 		}
 	}
 
@@ -2362,17 +1873,10 @@ static void printFPImmOperand(MCInst *MI, unsigned OpNum, SStream *O)
 {
 	MCOperand *MO = MCInst_getOperand(MI, OpNum);
 	SStream_concat(O, "%s#%f%s", markup("<imm:"), getFPImmFloat(MCOperand_getImm(MO)), markup(">"));
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_FP;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].fp = getFPImmFloat(MCOperand_getImm(MO));
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_FP;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].fp = getFPImmFloat(MCOperand_getImm(MO));
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 }
 
@@ -2385,17 +1889,10 @@ static void printNEONModImmOperand(MCInst *MI, unsigned OpNum, SStream *O)
 		SStream_concat(O, "%s#0x%"PRIx64"%s", markup("<imm:"), Val, markup(">"));
 	else
 		SStream_concat(O, "%s#%"PRIu64"%s", markup("<imm:"), Val, markup(">"));
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_IMM;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = Val;
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_IMM;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = Val;
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 }
 
@@ -2406,17 +1903,10 @@ static void printImmPlusOneOperand(MCInst *MI, unsigned OpNum, SStream *O)
 		SStream_concat(O, "%s#0x%x%s", markup("<imm:"), Imm + 1, markup(">"));
 	else
 		SStream_concat(O, "%s#%u%s", markup("<imm:"), Imm + 1, markup(">"));
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_IMM;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = Imm + 1;
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_IMM;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = Imm + 1;
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 }
 
@@ -2433,15 +1923,9 @@ static void printRotImmOperand(MCInst *MI, unsigned OpNum, SStream *O)
 		case 3: SStream_concat(O, "24"); break;
 	}
 	SStream_concat(O, markup(">"));
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count - 1].shift.type = ARM_SFT_ROR;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count - 1].shift.value = Imm * 8;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count - 1].shift.type = ARM_SFT_ROR;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count - 1].shift.value = Imm * 8;
->>>>>>> origin/master
 	}
 }
 
@@ -2453,17 +1937,10 @@ static void printFBits16(MCInst *MI, unsigned OpNum, SStream *O)
 		SStream_concat(O, "#0x%x", tmp);
 	else
 		SStream_concat(O, "#%u", tmp);
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_IMM;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = tmp;
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_IMM;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = tmp;
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 	SStream_concat(O, markup(">"));
 }
@@ -2476,17 +1953,10 @@ static void printFBits32(MCInst *MI, unsigned OpNum, SStream *O)
 		SStream_concat(O, "#0x%x", tmp);
 	else
 		SStream_concat(O, "#%u", tmp);
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_IMM;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = tmp;
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_IMM;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = tmp;
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 	SStream_concat(O, markup(">"));
 }
@@ -2498,17 +1968,10 @@ static void printVectorIndex(MCInst *MI, unsigned OpNum, SStream *O)
 		SStream_concat(O, "[0x%x]",tmp);
 	else
 		SStream_concat(O, "[%u]",tmp);
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_IMM;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].imm = tmp;
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_IMM;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].imm = tmp;
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 }
 
@@ -2516,17 +1979,10 @@ static void printVectorListOne(MCInst *MI, unsigned OpNum, SStream *O)
 {
 	SStream_concat(O, "{");
 	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)));
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum));
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum));
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 	SStream_concat(O, "}");
 }
@@ -2539,7 +1995,6 @@ static void printVectorListTwo(MCInst *MI, unsigned OpNum,
 	unsigned Reg1 = MCRegisterInfo_getSubReg(MRI, Reg, ARM_dsub_1);
 	SStream_concat(O, "{");
 	printRegName(O, Reg0);
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = Reg0;
@@ -2551,19 +2006,6 @@ static void printVectorListTwo(MCInst *MI, unsigned OpNum,
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = Reg1;
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = Reg0;
-		MI->pub_insn.arm.op_count++;
-	}
-	SStream_concat(O, ", ");
-	printRegName(O, Reg1);
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = Reg1;
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 	SStream_concat(O, "}");
 }
@@ -2576,7 +2018,6 @@ static void printVectorListTwoSpaced(MCInst *MI, unsigned OpNum,
 	unsigned Reg1 = MCRegisterInfo_getSubReg(MRI, Reg, ARM_dsub_2);
 	SStream_concat(O, "{");
 	printRegName(O, Reg0);
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = Reg0;
@@ -2588,19 +2029,6 @@ static void printVectorListTwoSpaced(MCInst *MI, unsigned OpNum,
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = Reg1;
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = Reg0;
-		MI->pub_insn.arm.op_count++;
-	}
-	SStream_concat(O, ", ");
-	printRegName(O, Reg1);
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = Reg1;
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 	SStream_concat(O, "}");
 }
@@ -2612,7 +2040,6 @@ static void printVectorListThree(MCInst *MI, unsigned OpNum, SStream *O)
 	// sort order is guaranteed because they're all of the form D<n>.
 	SStream_concat(O, "{");
 	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)));
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum));
@@ -2631,26 +2058,6 @@ static void printVectorListThree(MCInst *MI, unsigned OpNum, SStream *O)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 2;
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum));
-		MI->pub_insn.arm.op_count++;
-	}
-	SStream_concat(O, ", ");
-	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 1);
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 1;
-		MI->pub_insn.arm.op_count++;
-	}
-	SStream_concat(O, ", ");
-	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 2);
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 2;
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 	SStream_concat(O, "}");
 }
@@ -2662,7 +2069,6 @@ static void printVectorListFour(MCInst *MI, unsigned OpNum, SStream *O)
 	// sort order is guaranteed because they're all of the form D<n>.
 	SStream_concat(O, "{");
 	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)));
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum));
@@ -2688,33 +2094,6 @@ static void printVectorListFour(MCInst *MI, unsigned OpNum, SStream *O)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 3;
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum));
-		MI->pub_insn.arm.op_count++;
-	}
-	SStream_concat(O, ", ");
-	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 1);
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 1;
-		MI->pub_insn.arm.op_count++;
-	}
-	SStream_concat(O, ", ");
-	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 2);
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 2;
-		MI->pub_insn.arm.op_count++;
-	}
-	SStream_concat(O, ", ");
-	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 3);
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 3;
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 	SStream_concat(O, "}");
 }
@@ -2723,17 +2102,10 @@ static void printVectorListOneAllLanes(MCInst *MI, unsigned OpNum, SStream *O)
 {
 	SStream_concat(O, "{");
 	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)));
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum));
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum));
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 	SStream_concat(O, "[]}");
 }
@@ -2746,7 +2118,6 @@ static void printVectorListTwoAllLanes(MCInst *MI, unsigned OpNum,
 	unsigned Reg1 = MCRegisterInfo_getSubReg(MRI, Reg, ARM_dsub_1);
 	SStream_concat(O, "{");
 	printRegName(O, Reg0);
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = Reg0;
@@ -2758,19 +2129,6 @@ static void printVectorListTwoAllLanes(MCInst *MI, unsigned OpNum,
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = Reg1;
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = Reg0;
-		MI->pub_insn.arm.op_count++;
-	}
-	SStream_concat(O, "[], ");
-	printRegName(O, Reg1);
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = Reg1;
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 	SStream_concat(O, "[]}");
 }
@@ -2782,7 +2140,6 @@ static void printVectorListThreeAllLanes(MCInst *MI, unsigned OpNum, SStream *O)
 	// sort order is guaranteed because they're all of the form D<n>.
 	SStream_concat(O, "{");
 	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)));
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum));
@@ -2801,26 +2158,6 @@ static void printVectorListThreeAllLanes(MCInst *MI, unsigned OpNum, SStream *O)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 2;
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum));
-		MI->pub_insn.arm.op_count++;
-	}
-	SStream_concat(O, "[], ");
-	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 1);
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 1;
-		MI->pub_insn.arm.op_count++;
-	}
-	SStream_concat(O, "[], ");
-	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 2);
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 2;
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 	SStream_concat(O, "[]}");
 }
@@ -2832,7 +2169,6 @@ static void printVectorListFourAllLanes(MCInst *MI, unsigned OpNum, SStream *O)
 	// sort order is guaranteed because they're all of the form D<n>.
 	SStream_concat(O, "{");
 	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)));
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum));
@@ -2858,33 +2194,6 @@ static void printVectorListFourAllLanes(MCInst *MI, unsigned OpNum, SStream *O)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 3;
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum));
-		MI->pub_insn.arm.op_count++;
-	}
-	SStream_concat(O, "[], ");
-	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 1);
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 1;
-		MI->pub_insn.arm.op_count++;
-	}
-	SStream_concat(O, "[], ");
-	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 2);
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 2;
-		MI->pub_insn.arm.op_count++;
-	}
-	SStream_concat(O, "[], ");
-	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 3);
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 3;
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 	SStream_concat(O, "[]}");
 }
@@ -2897,7 +2206,6 @@ static void printVectorListTwoSpacedAllLanes(MCInst *MI,
 	unsigned Reg1 = MCRegisterInfo_getSubReg(MRI, Reg, ARM_dsub_2);
 	SStream_concat(O, "{");
 	printRegName(O, Reg0);
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = Reg0;
@@ -2909,19 +2217,6 @@ static void printVectorListTwoSpacedAllLanes(MCInst *MI,
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = Reg1;
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = Reg0;
-		MI->pub_insn.arm.op_count++;
-	}
-	SStream_concat(O, "[], ");
-	printRegName(O, Reg1);
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = Reg1;
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 	SStream_concat(O, "[]}");
 }
@@ -2934,7 +2229,6 @@ static void printVectorListThreeSpacedAllLanes(MCInst *MI,
 	// sort order is guaranteed because they're all of the form D<n>.
 	SStream_concat(O, "{");
 	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)));
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum));
@@ -2953,26 +2247,6 @@ static void printVectorListThreeSpacedAllLanes(MCInst *MI,
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 4;
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum));
-		MI->pub_insn.arm.op_count++;
-	}
-	SStream_concat(O, "[], ");
-	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 2);
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 2;
-		MI->pub_insn.arm.op_count++;
-	}
-	SStream_concat(O, "[], ");
-	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 4);
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 4;
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 	SStream_concat(O, "[]}");
 }
@@ -2985,7 +2259,6 @@ static void printVectorListFourSpacedAllLanes(MCInst *MI,
 	// sort order is guaranteed because they're all of the form D<n>.
 	SStream_concat(O, "{");
 	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)));
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum));
@@ -3011,33 +2284,6 @@ static void printVectorListFourSpacedAllLanes(MCInst *MI,
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 6;
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum));
-		MI->pub_insn.arm.op_count++;
-	}
-	SStream_concat(O, "[], ");
-	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 2);
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 2;
-		MI->pub_insn.arm.op_count++;
-	}
-	SStream_concat(O, "[], ");
-	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 4);
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 4;
-		MI->pub_insn.arm.op_count++;
-	}
-	SStream_concat(O, "[], ");
-	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 6);
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 6;
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 	SStream_concat(O, "[]}");
 }
@@ -3049,7 +2295,6 @@ static void printVectorListThreeSpaced(MCInst *MI, unsigned OpNum, SStream *O)
 	// sort order is guaranteed because they're all of the form D<n>.
 	SStream_concat(O, "{");
 	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)));
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum));
@@ -3068,26 +2313,6 @@ static void printVectorListThreeSpaced(MCInst *MI, unsigned OpNum, SStream *O)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 4;
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum));
-		MI->pub_insn.arm.op_count++;
-	}
-	SStream_concat(O, ", ");
-	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 2);
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 2;
-		MI->pub_insn.arm.op_count++;
-	}
-	SStream_concat(O, ", ");
-	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 4);
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 4;
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 	SStream_concat(O, "}");
 }
@@ -3099,7 +2324,6 @@ static void printVectorListFourSpaced(MCInst *MI, unsigned OpNum, SStream *O)
 	// sort order is guaranteed because they're all of the form D<n>.
 	SStream_concat(O, "{");
 	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)));
-<<<<<<< HEAD
 	if (MI->csh->detail) {
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum));
@@ -3125,33 +2349,6 @@ static void printVectorListFourSpaced(MCInst *MI, unsigned OpNum, SStream *O)
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].type = ARM_OP_REG;
 		MI->flat_insn.arm.operands[MI->flat_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 6;
 		MI->flat_insn.arm.op_count++;
-=======
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum));
-		MI->pub_insn.arm.op_count++;
-	}
-	SStream_concat(O, ", ");
-	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 2);
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 2;
-		MI->pub_insn.arm.op_count++;
-	}
-	SStream_concat(O, ", ");
-	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 4);
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 4;
-		MI->pub_insn.arm.op_count++;
-	}
-	SStream_concat(O, ", ");
-	printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 6);
-	if (MI->detail) {
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].type = ARM_OP_REG;
-		MI->pub_insn.arm.operands[MI->pub_insn.arm.op_count].reg = MCOperand_getReg(MCInst_getOperand(MI, OpNum)) + 6;
-		MI->pub_insn.arm.op_count++;
->>>>>>> origin/master
 	}
 	SStream_concat(O, "}");
 }

@@ -82,7 +82,6 @@ MCOperand *MCOperand_CreateImm(int64_t Val);
 
 MCOperand *MCOperand_CreateFPImm(double Val);
 
-<<<<<<< HEAD
 // NOTE: this structure is a flatten version of cs_insn struct
 // Detail information of disassembled instruction
 typedef struct cs_insn_flat {
@@ -132,20 +131,13 @@ typedef struct cs_insn_flat {
 	};
 } cs_insn_flat;
 
-=======
->>>>>>> origin/master
 /// MCInst - Instances of this class represent a single low-level machine
 /// instruction.
 struct MCInst {
 	unsigned Opcode;
 	MCOperand Operands[32];
 	unsigned size;	// number of operands
-<<<<<<< HEAD
 	cs_insn_flat flat_insn;	// insn to be exposed to public
-=======
-	cs_insn pub_insn;	// insn to be exposed to public
-	cs_mode mode;	// to be referenced by internal code
->>>>>>> origin/master
 	unsigned OpcodePub;
 	int insn_size;	// instruction size
 	int x86_segment;	// remove when segment mem ref hack is redundant.

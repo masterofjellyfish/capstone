@@ -1,26 +1,8 @@
-Windows build steps (tested in Visual Studio 2012 in Windows 8.1):
-
-* First, ensure that the 32 and 64-bit versions of libcapstone.dll have been placed in their respective folder in lib/.
-
-* Either open CapstoneFramework.sln in Visual Studio and select BUILD->"BUILD SOLUTION"
-
-* Or, run the following from a Visual Studio command prompt
-	> msbuild CapstoneFramework.sln
-
-Linux build steps (tested in Ubuntu 12.0.4 LTS i386):
+This has been tested with Mono on Linux
 
 - On Ubuntu, install Mono with:
 	$ sudo apt-get install mono-complete
 
-- Build test code with:
+- Run test code with:
 	$ make
-
-Notes:
-
-* libcapstone.dll or libcapston.so must reside in an x86 or x64 folder adjacent to capstone.dll (the C# binding library). For example, if capstone.dll resides in C:\Temp\capstone, libcapstone.dll must reside in C:\Temp\capstone\x86 and C:\Temp\capstone\x64, respectfully.
-
-Known issues:
-
-* Structure alignment is off in the Mono build. Therefore, the Mono build is essentially not supported at the moment.
-
-* In the Windows build, ARM64 registers in the architecture dependent structures are off by two. I validated that the enum values were aligned properly and validated the values in memory with WinDBG. Thus far, I haven't been able to determine the source of the discrepency.
+	$ ./run.sh
