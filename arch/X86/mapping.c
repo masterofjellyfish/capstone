@@ -1605,8 +1605,6 @@ x86_reg X86_map_insn(const char *name)
 #include "X86GenInstrInfo.inc"
 
 static insn_map insns[] = {
-	{ 0, 0, { 0 }, { 0 }, { 0 }, 0, 0 },	// dummy item
-
 	{ X86_AAA, X86_INS_AAA, { 0 }, { 0 }, { X86_GRP_MODE32, 0 }, 0, 0 },
 	{ X86_AAD8i8, X86_INS_AAD, { 0 }, { 0 }, { X86_GRP_MODE32, 0 }, 0, 0 },
 	{ X86_AAM8i8, X86_INS_AAM, { 0 }, { 0 }, { X86_GRP_MODE32, 0 }, 0, 0 },
@@ -6606,29 +6604,27 @@ void X86_post_printer(csh handle, cs_insn *insn, char *insn_asm)
 	}
 }
 
-static unsigned short *insn_cache = NULL;
-
 // given internal insn id, return public instruction info
 void X86_get_insn_id(cs_insn *insn, unsigned int id, int detail)
 {
-	int i = insn_find(insns, ARR_SIZE(insns), id, &insn_cache);
-	if (i != 0) {
+	int i = insn_find(insns, ARR_SIZE(insns), id);
+	if (i != -1) {
 		insn->id = insns[i].mapid;
 
 		if (detail) {
-			memcpy(insn->detail->regs_read, insns[i].regs_use, sizeof(insns[i].regs_use));
-			insn->detail->regs_read_count = count_positive(insns[i].regs_use);
+			memcpy(insn->regs_read, insns[i].regs_use, sizeof(insns[i].regs_use));
+			insn->regs_read_count = count_positive(insns[i].regs_use);
 
-			memcpy(insn->detail->regs_write, insns[i].regs_mod, sizeof(insns[i].regs_mod));
-			insn->detail->regs_write_count = count_positive(insns[i].regs_mod);
+			memcpy(insn->regs_write, insns[i].regs_mod, sizeof(insns[i].regs_mod));
+			insn->regs_write_count = count_positive(insns[i].regs_mod);
 
-			memcpy(insn->detail->groups, insns[i].groups, sizeof(insns[i].groups));
-			insn->detail->groups_count = count_positive(insns[i].groups);
+			memcpy(insn->groups, insns[i].groups, sizeof(insns[i].groups));
+			insn->groups_count = count_positive(insns[i].groups);
 
 			if (insns[i].branch || insns[i].indirect_branch) {
 				// this insn also belongs to JUMP group. add JUMP group
-				insn->detail->groups[insn->detail->groups_count] = X86_GRP_JUMP;
-				insn->detail->groups_count++;
+				insn->groups[insn->groups_count] = X86_GRP_JUMP;
+				insn->groups_count++;
 			}
 		}
 	}
@@ -6640,8 +6636,3 @@ unsigned int X86_get_insn_id2(unsigned int id)
 	return insn_reverse_id(insns, ARR_SIZE(insns), id);
 }
 
-void X86_free_cache(void)
-{
-	free(insn_cache);
-	insn_cache = NULL;
-}

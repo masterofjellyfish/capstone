@@ -52,7 +52,6 @@ static void test()
 #define ARM64_CODE "\x21\x7c\x02\x9b\x21\x7c\x00\x53\x00\x40\x21\x4b\xe1\x0b\x40\xb9\x10\x20\x21\x1e"
 //#define THUMB_CODE "\x0a\xbf" // itet eq
 //#define X86_CODE32 "\x77\x04"	// ja +6
-#define PPC_CODE "\x80\x20\x00\x00\x80\x3f\x00\x00\x10\x43\x23\x0e\xd0\x44\x00\x80\x4c\x43\x22\x02\x2d\x03\x00\x80\x7c\x43\x20\x14\x7c\x43\x20\x93\x4f\x20\x00\x21\x4c\xc8\x00\x21"
 
 	struct platform platforms[] = {
 		{
@@ -134,17 +133,11 @@ static void test()
 			.size = sizeof(ARM64_CODE) - 1,
 			.comment = "ARM-64"
 		},
-		{
-			.arch = CS_ARCH_PPC,
-			.mode = CS_MODE_BIG_ENDIAN,
-			.code = (unsigned char*)PPC_CODE,
-			.size = sizeof(PPC_CODE) - 1,
-			.comment = "PPC-64"
-		},
 	};
 
 	csh handle;
 	uint64_t address = 0x1000;
+	//cs_insn all_insn[16];
 	cs_insn *all_insn;
 	int i;
 
@@ -157,7 +150,8 @@ static void test()
 
 		//cs_option(handle, CS_OPT_DETAIL, CS_OPT_OFF);
 
-		size_t count = cs_disasm_ex(handle, platforms[i].code, platforms[i].size, address, 0, &all_insn);
+		//size_t count = cs_disasm(handle, platforms[i].code, platforms[i].size, address, 0, all_insn);
+		size_t count = cs_disasm_dyn(handle, platforms[i].code, platforms[i].size, address, 0, &all_insn);
 		if (count) {
 			printf("****************\n");
 			printf("Platform: %s\n", platforms[i].comment);
@@ -173,28 +167,28 @@ static void test()
 						i->id, cs_insn_name(handle, i->id));
 
 				// print implicit registers used by this instruction
-				if (i->detail->regs_read_count > 0) {
+				if (i->regs_read_count > 0) {
 					printf("\tImplicit registers read: ");
-					for (n = 0; n < i->detail->regs_read_count; n++) {
-						printf("%s ", cs_reg_name(handle, i->detail->regs_read[n]));
+					for (n = 0; n < i->regs_read_count; n++) {
+						printf("%s ", cs_reg_name(handle, i->regs_read[n]));
 					}
 					printf("\n");
 				}
 
 				// print implicit registers modified by this instruction
-				if (i->detail->regs_write_count > 0) {
+				if (i->regs_write_count > 0) {
 					printf("\tImplicit registers modified: ");
-					for (n = 0; n < i->detail->regs_write_count; n++) {
-						printf("%s ", cs_reg_name(handle, i->detail->regs_write[n]));
+					for (n = 0; n < i->regs_write_count; n++) {
+						printf("%s ", cs_reg_name(handle, i->regs_write[n]));
 					}
 					printf("\n");
 				}
 
 				// print the groups this instruction belong to
-				if (i->detail->groups_count > 0) {
+				if (i->groups_count > 0) {
 					printf("\tThis instruction belongs to groups: ");
-					for (n = 0; n < i->detail->groups_count; n++) {
-						printf("%u ", i->detail->groups[n]);
+					for (n = 0; n < i->groups_count; n++) {
+						printf("%u ", i->groups[n]);
 					}
 					printf("\n");
 				}
@@ -203,8 +197,8 @@ static void test()
 			// print out the next offset, after the last insn
 			printf("0x%"PRIx64":\n", all_insn[j-1].address + all_insn[j-1].size);
 
-			// free memory allocated by cs_disasm_ex()
-			cs_free(all_insn, count);
+			// free memory allocated by cs_disasm_dyn()
+			cs_free(all_insn);
 		} else {
 			printf("****************\n");
 			printf("Platform: %s\n", platforms[i].comment);

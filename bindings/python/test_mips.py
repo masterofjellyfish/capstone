@@ -35,17 +35,17 @@ def test_class():
             for i in insn.operands:
                 c += 1
                 if i.type == MIPS_OP_REG:
-                    print("\t\toperands[%u].type: REG = %s" %(c, insn.reg_name(i.reg)))
+                    print("\t\toperands[%u].type: REG = %s" %(c, insn.reg_name(i.value.reg)))
                 if i.type == MIPS_OP_IMM:
-                    print("\t\toperands[%u].type: IMM = 0x%s" %(c, to_x(i.imm)))
+                    print("\t\toperands[%u].type: IMM = 0x%s" %(c, to_x(i.value.imm)))
                 if i.type == MIPS_OP_MEM:
                     print("\t\toperands[%u].type: MEM" %c)
-                    if i.mem.base != 0:
+                    if i.value.mem.base != 0:
                         print("\t\t\toperands[%u].mem.base: REG = %s" \
-                            %(c, insn.reg_name(i.mem.base)))
-                    if i.mem.disp != 0:
+                            %(c, insn.reg_name(i.value.mem.base)))
+                    if i.value.mem.disp != 0:
                         print("\t\t\toperands[%u].mem.disp: 0x%s" \
-                            %(c, to_x(i.mem.disp)))
+                            %(c, to_x(i.value.mem.disp)))
 
 
     for (arch, mode, code, comment) in all_tests:

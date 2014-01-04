@@ -5,7 +5,6 @@
 #include <string.h>
 
 #include "../../include/arm.h"
-#include "../../cs_priv.h"
 
 #include "mapping.h"
 
@@ -88,10 +87,10 @@ static name_map reg_name_maps[] = {
 	{ ARM_REG_R6, "r6"},
 	{ ARM_REG_R7, "r7"},
 	{ ARM_REG_R8, "r8"},
-	{ ARM_REG_R9, "sb"},
-	{ ARM_REG_R10, "sl"},
-	{ ARM_REG_R11, "fp"},
-	{ ARM_REG_R12, "ip"},
+	{ ARM_REG_R9, "r9"},
+	{ ARM_REG_R10, "r10"},
+	{ ARM_REG_R11, "r11"},
+	{ ARM_REG_R12, "r12"},
 	{ ARM_REG_S0, "s0"},
 	{ ARM_REG_S1, "s1"},
 	{ ARM_REG_S2, "s2"},
@@ -135,8 +134,6 @@ const char *ARM_reg_name(csh handle, unsigned int reg)
 }
 
 static insn_map insns[] = {
-	{ 0, 0, { 0 }, { 0 }, { 0 }, 0, 0 },	// dummy item
-
 	{ ARM_ADCri, ARM_INS_ADC, { ARM_REG_CPSR, 0 }, { ARM_REG_CPSR, 0 }, { ARM_GRP_ARM, 0 }, 0, 0 },
 	{ ARM_ADCrr, ARM_INS_ADC, { ARM_REG_CPSR, 0 }, { ARM_REG_CPSR, 0 }, { ARM_GRP_ARM, 0 }, 0, 0 },
 	{ ARM_ADCrsi, ARM_INS_ADC, { ARM_REG_CPSR, 0 }, { ARM_REG_CPSR, 0 }, { ARM_GRP_ARM, 0 }, 0, 0 },
@@ -2300,34 +2297,30 @@ static insn_map insns[] = {
 	{ ARM_tUXTH, ARM_INS_UXTH, { 0 }, { 0 }, { ARM_GRP_THUMB, ARM_GRP_THUMB1ONLY, ARM_GRP_V6, 0 }, 0, 0 },
 };
 
-
-static unsigned short *insn_cache = NULL;
-
 void ARM_get_insn_id(cs_insn *insn, unsigned int id, int detail)
 {
-	int i = insn_find(insns, ARR_SIZE(insns), id, &insn_cache);
-	if (i != 0) {
+	int i = insn_find(insns, ARR_SIZE(insns), id);
+	if (i != -1) {
 		insn->id = insns[i].mapid;
 
 		if (detail) {
-			cs_struct handle;
-			handle.detail = detail;
+			memcpy(insn->regs_read, insns[i].regs_use, sizeof(insns[i].regs_use));
+			insn->regs_read_count = count_positive(insns[i].regs_use);
 
-			memcpy(insn->detail->regs_read, insns[i].regs_use, sizeof(insns[i].regs_use));
-			insn->detail->regs_read_count = count_positive(insns[i].regs_use);
+			memcpy(insn->regs_write, insns[i].regs_mod, sizeof(insns[i].regs_mod));
+			insn->regs_write_count = count_positive(insns[i].regs_mod);
 
-			memcpy(insn->detail->regs_write, insns[i].regs_mod, sizeof(insns[i].regs_mod));
-			insn->detail->regs_write_count = count_positive(insns[i].regs_mod);
+			memcpy(insn->groups, insns[i].groups, sizeof(insns[i].groups));
+			insn->groups_count = count_positive(insns[i].groups);
 
-			memcpy(insn->detail->groups, insns[i].groups, sizeof(insns[i].groups));
-			insn->detail->groups_count = count_positive(insns[i].groups);
-
-			insn->detail->arm.update_flags = cs_reg_write((csh)&handle, insn, ARM_REG_CPSR);
+			// call cs_reg_write() with handle = 1 to bypass handle check
+			// we only need to find if this insn modifies ARM64_REG_NZCV
+			insn->arm.update_flags = cs_reg_write(1, insn, ARM_REG_CPSR);
 
 			if (insns[i].branch || insns[i].indirect_branch) {
 				// this insn also belongs to JUMP group. add JUMP group
-				insn->detail->groups[insn->detail->groups_count] = ARM_GRP_JUMP;
-				insn->detail->groups_count++;
+				insn->groups[insn->groups_count] = ARM_GRP_JUMP;
+				insn->groups_count++;
 			}
 		}
 	}
@@ -2793,18 +2786,11 @@ arm_reg ARM_map_insn(const char *name)
 
 bool ARM_rel_branch(unsigned int id)
 {
-	int i = insn_find(insns, ARR_SIZE(insns), id, &insn_cache);
-	if (i != 0)
+	int i = insn_find(insns, ARR_SIZE(insns), id);
+	if (i != -1)
 		return (insns[i].branch && !insns[i].indirect_branch);
 	else {
 		printf("ALERT: rel_branch() got incorrect id!\n");
 		return false;
 	}
-}
-
-void ARM_free_cache(void)
-{
-	free(insn_cache);
-
-	insn_cache = NULL;
 }

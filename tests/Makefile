@@ -6,13 +6,7 @@ LIBDIR = ..
 
 CC = $(CROSS)gcc
 
-COMPILER = $(shell $(CC) -v 2>&1 )
-ifeq ($(findstring clang,$(COMPILER)),clang)
-# clang doesnt like -L option
-CFLAGS += -fPIC -O3 -Wall -I$(INCDIR)
-else
 CFLAGS += -fPIC -O3 -Wall -I$(INCDIR) -L$(LIBDIR)
-endif
 
 LIBNAME = capstone
 
@@ -34,7 +28,7 @@ endif
 
 .PHONY: all clean
 
-SOURCES = test.c test_detail.c test_x86.c test_arm64.c test_arm.c test_mips.c test_ppc.c
+SOURCES = test.c test_detail.c test_x86.c test_arm64.c test_arm.c test_mips.c
 OBJS = $(SOURCES:.c=.o)
 BINARY = $(SOURCES:.c=$(BIN_EXT))
 
@@ -46,7 +40,7 @@ clean:
 $(BINARY): $(OBJS)
 
 %$(BIN_EXT): %.o
-	${CC} $(CFLAGS) $(LDFLAGS) $< -O3 -Wall -l$(LIBNAME) -o $@
+	${CC} $(CFLAGS) $< -O3 -Wall -l$(LIBNAME) -o $@
 
 %.o: %.c
 	${CC} ${CFLAGS} -c $< -o $@

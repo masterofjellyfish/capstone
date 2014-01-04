@@ -1,8 +1,8 @@
 /* Capstone Disassembler Engine */
 /* By Nguyen Anh Quynh <aquynh@gmail.com>, 2013> */
 
-#ifndef CS_PRIV_H
-#define CS_PRIV_H
+#ifndef __CS_PRIV_H__
+#define __CS_PRIV_H__
 
 #include <capstone.h>
 
@@ -27,7 +27,7 @@ typedef struct ARM_ITStatus {
 	unsigned int size;
 } ARM_ITStatus;
 
-struct cs_struct {
+typedef struct cs_struct {
 	cs_arch arch;
 	cs_mode mode;
 	Printer_t printer;	// asm printer
@@ -42,21 +42,6 @@ struct cs_struct {
 	cs_err errnum;
 	ARM_ITStatus ITBlock;	// for Arm only
 	cs_opt_value detail;
-	int syntax;	// asm syntax for simple printer such as PPC
-	bool doing_mem;	// handling memory operand in InstPrinter code
-};
-
-#define MAX_ARCH 8
-
-// constructor initialization for all archs
-extern cs_err (*arch_init[MAX_ARCH]) (cs_struct *);
-
-// support cs_option() for all archs
-extern cs_err (*arch_option[MAX_ARCH]) (cs_struct*, cs_opt_type, size_t value);
-
-// deinitialized functions: to be called when cs_close() is called
-extern void (*arch_destroy[MAX_ARCH]) (cs_struct*);
-
-extern unsigned int all_arch;
+} cs_struct;
 
 #endif

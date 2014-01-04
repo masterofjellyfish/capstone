@@ -16,8 +16,8 @@
 /* Capstone Disassembler Engine */
 /* By Nguyen Anh Quynh <aquynh@gmail.com>, 2013> */
 
-#ifndef CS_X86_DISASSEMBLERDECODER_H
-#define CS_X86_DISASSEMBLERDECODER_H
+#ifndef SB_X86DISASSEMBLERDECODER_H
+#define SB_X86DISASSEMBLERDECODER_H
 
 #ifdef __cplusplus
 extern "C" {
