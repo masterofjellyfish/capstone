@@ -46,6 +46,7 @@ struct cs_struct {
 	bool doing_mem;	// handling memory operand in InstPrinter code
 };
 
+<<<<<<< HEAD
 #define MAX_ARCH 8
 
 // constructor initialization for all archs
@@ -59,4 +60,6 @@ extern void (*arch_destroy[MAX_ARCH]) (cs_struct*);
 
 extern unsigned int all_arch;
 
+=======
+>>>>>>> origin/master
 #endif

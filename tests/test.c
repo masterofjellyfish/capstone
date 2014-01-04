@@ -148,6 +148,7 @@ static void test()
 
 	csh handle;
 	uint64_t address = 0x1000;
+	//cs_insn insn[16];
 	cs_insn *insn;
 	int i;
 
@@ -163,7 +164,8 @@ static void test()
 
 		//cs_option(handle, CS_OPT_DETAIL, CS_OPT_OFF);
 
-		size_t count = cs_disasm_ex(handle, platforms[i].code, platforms[i].size, address, 0, &insn);
+		//size_t count = cs_disasm(handle, platforms[i].code, platforms[i].size, address, 0, insn);
+		size_t count = cs_disasm_dyn(handle, platforms[i].code, platforms[i].size, address, 0, &insn);
 		if (count) {
 			printf("****************\n");
 			printf("Platform: %s\n", platforms[i].comment);
@@ -180,8 +182,8 @@ static void test()
 			// print out the next offset, after the last insn
 			printf("0x%"PRIx64":\n", insn[j-1].address + insn[j-1].size);
 
-			// free memory allocated by cs_disasm_ex()
-			cs_free(insn, count);
+			// free memory allocated by cs_disasm_dyn()
+			cs_free(insn);
 		} else {
 			printf("****************\n");
 			printf("Platform: %s\n", platforms[i].comment);

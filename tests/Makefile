@@ -46,7 +46,7 @@ clean:
 $(BINARY): $(OBJS)
 
 %$(BIN_EXT): %.o
-	${CC} $(CFLAGS) $(LDFLAGS) $< -O3 -Wall -l$(LIBNAME) -o $@
+	${CC} $(CFLAGS) $< -O3 -Wall -l$(LIBNAME) -o $@
 
 %.o: %.c
 	${CC} ${CFLAGS} -c $< -o $@

@@ -1,7 +1,10 @@
 # Capstone Disassembler Engine
 # By Nguyen Anh Quynh <aquynh@gmail.com>, 2013>
+<<<<<<< HEAD
 
 include config.mk
+=======
+>>>>>>> origin/master
 
 CC = $(CROSS)gcc
 AR ?= $(CROSS)ar
@@ -14,17 +17,7 @@ LDFLAGS += -shared
 PREFIX ?= /usr
 DESTDIR ?=
 INCDIR = $(DESTDIR)$(PREFIX)/include
-
 LIBDIR = $(DESTDIR)$(PREFIX)/lib
-# on x86_64, we might have /usr/lib64 directory instead of /usr/lib
-MACHINE := $(shell uname -m)
-ifeq ($(MACHINE), x86_64)
-ifeq (,$(wildcard $(LIBDIR)))
-LIBDIR = $(DESTDIR)$(PREFIX)/lib64
-else
-LIBDIR = $(DESTDIR)$(PREFIX)/lib
-endif
-endif
 
 INSTALL_DATA ?= install -m0644
 INSTALL_LIBRARY ?= install -m0755
@@ -33,6 +26,7 @@ LIBNAME = capstone
 
 LIBOBJ =
 LIBOBJ += cs.o utils.o SStream.o MCInstrDesc.o MCRegisterInfo.o
+<<<<<<< HEAD
 
 ifneq (,$(findstring powerpc,$(CAPSTONE_ARCHS)))
 	LIBOBJ += arch/PowerPC/PPCDisassembler.o
@@ -69,11 +63,22 @@ endif
 
 LIBOBJ += MCInst.o
 
+=======
+LIBOBJ += arch/Mips/MipsDisassembler.o arch/Mips/MipsInstPrinter.o arch/Mips/mapping.o
+LIBOBJ += arch/AArch64/AArch64BaseInfo.o arch/AArch64/AArch64Disassembler.o arch/AArch64/AArch64InstPrinter.o arch/AArch64/mapping.o
+LIBOBJ += arch/ARM/ARMDisassembler.o arch/ARM/ARMInstPrinter.o arch/ARM/mapping.o
+LIBOBJ += arch/X86/X86DisassemblerDecoder.o arch/X86/X86Disassembler.o arch/X86/X86IntelInstPrinter.o arch/X86/X86ATTInstPrinter.o arch/X86/mapping.o
+LIBOBJ += MCInst.o
+
+EXT = so
+AR_EXT = a
+
+# OSX?
+>>>>>>> origin/master
 UNAME_S := $(shell uname -s)
 # OSX?
 ifeq ($(UNAME_S),Darwin)
 EXT = dylib
-AR_EXT = a
 else
 # Cygwin?
 IS_CYGWIN := $(shell $(CC) -dumpmachine | grep -i cygwin | wc -l)
@@ -92,11 +97,6 @@ AR_EXT = dll.a
 # mingw doesn't like -fPIC either
 CFLAGS := $(CFLAGS:-fPIC=)
 # On Windows we need the shared library to be executable
-else
-# Linux, *BSD
-EXT = so
-AR_EXT = a
-LDFLAGS += -Wl,-soname,$(LIBRARY)
 endif
 endif
 endif
@@ -122,14 +122,11 @@ $(ARCHIVE): $(LIBOBJ)
 	$(RANLIB) $(ARCHIVE)
 
 $(PKGCFGF):
-	echo 'Name: capstone' > $(PKGCFGF)
-	echo 'Description: Capstone disassembler engine' >> $(PKGCFGF)
-	echo 'Version: $(VERSION)' >> $(PKGCFGF)
-	echo 'libdir=$(LIBDIR)' >> $(PKGCFGF)
-	echo 'includedir=$(PREFIX)/include/capstone' >> $(PKGCFGF)
-	echo 'archive=$${libdir}/libcapstone.a' >> $(PKGCFGF)
-	echo 'Libs: -L$${libdir} -lcapstone' >> $(PKGCFGF)
-	echo 'Cflags: -I$${includedir}' >> $(PKGCFGF)
+	echo Name: capstone > $(PKGCFGF)
+	echo Description: Capstone disassembler engine >> $(PKGCFGF)
+	echo Version: $(VERSION) >> $(PKGCFGF)
+	echo Libs: -L$(LIBDIR) -lcapstone >> $(PKGCFGF)
+	echo Cflags: -I$(PREFIX)/include/capstone >> $(PKGCFGF)
 
 install: $(PKGCFGF) $(ARCHIVE) $(LIBRARY)
 	mkdir -p $(LIBDIR)
