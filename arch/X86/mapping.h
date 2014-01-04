@@ -1,8 +1,8 @@
 /* Capstone Disassembler Engine */
 /* By Nguyen Anh Quynh <aquynh@gmail.com>, 2013> */
 
-#ifndef SB_X86_MAP_H
-#define SB_X86_MAP_H
+#ifndef CS_X86_MAP_H
+#define CS_X86_MAP_H
 
 #include "../../include/capstone.h"
 #include "../../include/x86.h"
@@ -36,5 +36,8 @@ unsigned int X86_get_insn_id2(unsigned int insn_id);
 
 // post printer for X86.
 void X86_post_printer(csh handle, cs_insn *pub_insn, char *insn_asm);
+
+// free insn cache
+void X86_free_cache(void);
 
 #endif

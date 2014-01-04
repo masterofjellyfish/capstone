@@ -6,6 +6,7 @@
 
 #include "../../include/arm64.h"
 #include "../../utils.h"
+#include "../../cs_priv.h"
 
 #include "mapping.h"
 
@@ -253,6 +254,8 @@ const char *AArch64_reg_name(csh handle, unsigned int reg)
 }
 
 static insn_map insns[] = {
+	{ 0, 0, { 0 }, { 0 }, { 0 }, 0, 0 },	// dummy item
+
 	{ AArch64_ABS16b, ARM64_INS_ABS, { 0 }, { 0 }, { ARM64_GRP_NEON, 0 }, 0, 0 },
 	{ AArch64_ABS2d, ARM64_INS_ABS, { 0 }, { 0 }, { ARM64_GRP_NEON, 0 }, 0, 0 },
 	{ AArch64_ABS2s, ARM64_INS_ABS, { 0 }, { 0 }, { ARM64_GRP_NEON, 0 }, 0, 0 },
@@ -2989,30 +2992,34 @@ static insn_map alias_insns[] = {
 	// { AArch64_SUBSxxx_lsl, ARM64_INS_NEGS, { 0 }, { ARM64_REG_NZCV, 0 }, { 0 } },
 };
 
+static unsigned short *insn_cache = NULL;
+
+// given internal insn id, return public instruction info
 void AArch64_get_insn_id(cs_insn *insn, unsigned int id, int detail)
 {
-	int i = insn_find(insns, ARR_SIZE(insns), id);
-	if (i != -1) {
+	int i = insn_find(insns, ARR_SIZE(insns), id, &insn_cache);
+	if (i != 0) {
 		insn->id = insns[i].mapid;
 
 		if (detail) {
-			memcpy(insn->regs_read, insns[i].regs_use, sizeof(insns[i].regs_use));
-			insn->regs_read_count = count_positive(insns[i].regs_use);
+			cs_struct handle;
+			handle.detail = detail;
 
-			memcpy(insn->regs_write, insns[i].regs_mod, sizeof(insns[i].regs_mod));
-			insn->regs_write_count = count_positive(insns[i].regs_mod);
+			memcpy(insn->detail->regs_read, insns[i].regs_use, sizeof(insns[i].regs_use));
+			insn->detail->regs_read_count = count_positive(insns[i].regs_use);
 
-			memcpy(insn->groups, insns[i].groups, sizeof(insns[i].groups));
-			insn->groups_count = count_positive(insns[i].groups);
+			memcpy(insn->detail->regs_write, insns[i].regs_mod, sizeof(insns[i].regs_mod));
+			insn->detail->regs_write_count = count_positive(insns[i].regs_mod);
 
-			// call cs_reg_write() with handle = 1 to bypass handle check
-			// we only need to find if this insn modifies ARM64_REG_NZCV
-			insn->arm64.update_flags = cs_reg_write(1, insn, ARM64_REG_NZCV);
+			memcpy(insn->detail->groups, insns[i].groups, sizeof(insns[i].groups));
+			insn->detail->groups_count = count_positive(insns[i].groups);
+
+			insn->detail->arm64.update_flags = cs_reg_write((csh)&handle, insn, ARM64_REG_NZCV);
 
 			if (insns[i].branch || insns[i].indirect_branch) {
 				// this insn also belongs to JUMP group. add JUMP group
-				insn->groups[insn->groups_count] = ARM64_GRP_JUMP;
-				insn->groups_count++;
+				insn->detail->groups[insn->detail->groups_count] = ARM64_GRP_JUMP;
+				insn->detail->groups_count++;
 			}
 		}
 	}
@@ -3521,3 +3528,9 @@ arm64_reg AArch64_map_insn(const char *name)
 	return (i != -1)? i : ARM64_REG_INVALID;
 }
 
+void AArch64_free_cache(void)
+{
+	free(insn_cache);
+
+	insn_cache = NULL;
+}
