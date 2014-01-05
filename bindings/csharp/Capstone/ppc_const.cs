@@ -35,17 +35,17 @@ namespace Capstone.PowerPC
 
     public enum BH
     {
-        PPC_BH_NO = 0,      // no hint
-        PPC_BH_PLUS,        // PLUS hint
-        PPC_BH_MINUS,       // MINUS hint
+        NO = 0,      // no hint
+        PLUS,        // PLUS hint
+        MINUS,       // MINUS hint
     }
 
     public enum OP
     {
-        PPC_OP_INVALID = 0, // Uninitialized.
-        PPC_OP_REG,         // Register operand.
-        PPC_OP_IMM,         // Immediate operand.
-        PPC_OP_MEM          // Memory operand
+        INVALID = 0,    // Uninitialized.
+        REG,            // Register operand.
+        IMM,            // Immediate operand.
+        MEM             // Memory operand
     }
 
     public enum REG
@@ -636,11 +636,9 @@ namespace Capstone.PowerPC
     public enum GRP
     {
         INVALID = 0,
-
         ALTIVEC,
         MODE32,
         MODE64,
-
         JUMP,       // all jump instructions (conditional+direct+indirect jumps)
 
         MAX,        // <-- mark the end of the list of groups
