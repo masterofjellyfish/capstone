@@ -88,14 +88,14 @@ public class TestMips
 			new platform(
 					Architecture.Mips,
 					Mode.Mode32 | Mode.BigEndian,
-                    OptionValue.Off,
+                    OptionValue.SyntaxDefault,
 					mipsCode,
                     "MIPS-32 (Big-endian)"
 			),
 			new platform(
 					Architecture.Mips,
 					Mode.Mode64 | Mode.LittleEndian,
-                    OptionValue.Off,
+                    OptionValue.SyntaxDefault,
 					mipsCode2,
                     "MIPS-64-EL (Little-endian)"
 					)
@@ -110,6 +110,7 @@ public class TestMips
 
             Capstone.Capstone cs = new Capstone.Capstone(platforms[j].arch, platforms[j].mode);
             cs.SetSyntax(platforms[j].syntax);
+            cs.SetDetail(true);
             Instruction[] insns = cs.Disassemble(platforms[j].code, address, insnCount);
             for (int i = 0; i < insns.Length; i++)
             {
