@@ -43,10 +43,7 @@ namespace Capstone
 
     internal static class NativeMethods
     {
-        #if __MonoCs__
-        [DllImport("kernel32.so", CharSet = CharSet.Auto)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool SetDllDirectory(string lpPathName);
+        #if MONO
         [DllImport("libcapstone.so", CallingConvention = CallingConvention.Cdecl)]
         internal static extern ErrorCode cs_open(Architecture arch, Mode mode, ref UIntPtr handle);
         [DllImport("libcapstone.so", CallingConvention = CallingConvention.Cdecl)]
@@ -156,7 +153,7 @@ namespace Capstone
 
         public Capstone(Architecture arch, Mode mode)
         {
-            #if !____MonoCs__Cs__
+            #if !MONO
             // Get the path to the respective unmanaged library
             string libPath = Path.Combine(Path.GetDirectoryName(typeof(_Insn).Assembly.Location),
                 (IntPtr.Size == 8 ? "x64" : "x86"));
