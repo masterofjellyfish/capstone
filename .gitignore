@@ -37,6 +37,9 @@ tests/test_ppc
 *.swp
 
 capstone.pc
+# Visual Studio cache files
+*.suo
+*.cache
 
 # local files
 _*
