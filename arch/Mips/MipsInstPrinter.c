@@ -21,14 +21,14 @@
 
 #include "MipsInstPrinter.h"
 #include "../../MCInst.h"
-#include "../../cs_priv.h"
+#include "../../utils.h"
 #include "../../SStream.h"
 #include "../../MCRegisterInfo.h"
-#include "../../utils.h"
 #include "mapping.h"
 
 #include "MipsInstPrinter.h"
 
+static void printUnsignedImm(MCInst *MI, int opNum, SStream *O);
 static bool printAliasInstr(MCInst *MI, SStream *O, void *info);
 static bool printAlias(MCInst *MI, SStream *OS);
 
@@ -81,7 +81,7 @@ typedef enum Mips_CondCode {
 #include "MipsGenInstrInfo.inc"
 
 static char *getRegisterName(unsigned RegNo);
-static void printInstruction(MCInst *MI, SStream *O);
+static void printInstruction(MCInst *MI, SStream *O, MCRegisterInfo *MRI);
 
 static void set_mem_access(MCInst *MI, bool status)
 {
@@ -150,6 +150,19 @@ static void printRegName(SStream *OS, unsigned RegNo)
 	SStream_concat(OS, "$%s", getRegisterName(RegNo));
 }
 
+static void printSaveRestore(MCInst *MI, SStream *O)
+{
+	unsigned i, e;
+	for (i = 0, e = MCInst_getNumOperands(MI); i != e; ++i) {
+		if (i != 0)
+			SStream_concat(O, ", ");
+		if (MCOperand_isReg(MCInst_getOperand(MI, i)))
+			printRegName(O, MCOperand_getReg(MCInst_getOperand(MI, i)));
+		else
+			printUnsignedImm(MI, i, O);
+	}
+}
+
 void Mips_printInst(MCInst *MI, SStream *O, void *info)
 {
 	switch (MCInst_getOpcode(MI)) {
@@ -159,14 +172,34 @@ void Mips_printInst(MCInst *MI, SStream *O, void *info)
 			SStream_concat(O, ".set\tpush\n");
 			SStream_concat(O, ".set\tmips32r2\n");
 			break;
+		case Mips_Save16:
+			SStream_concat(O, "\tsave\t");
+			printSaveRestore(MI, O);
+			SStream_concat(O, " # 16 bit inst\n");
+			return;
+		case Mips_SaveX16:
+			SStream_concat(O, "\tsave\t");
+			printSaveRestore(MI, O);
+			SStream_concat(O, "\n");
+			return;
+		case Mips_Restore16:
+			SStream_concat(O, "\trestore\t");
+			printSaveRestore(MI, O);
+			SStream_concat(O, " # 16 bit inst\n");
+			return;
+		case Mips_RestoreX16:
+			SStream_concat(O, "\trestore\t");
+			printSaveRestore(MI, O);
+			SStream_concat(O, "\n");
+			return;
 	}
 
 	// Try to print any aliases first.
 	if (!printAliasInstr(MI, O, info) && !printAlias(MI, O))
-		printInstruction(MI, O);
+		printInstruction(MI, O, NULL);
 	else {
 		// fixup instruction id due to the change in alias instruction
-		char *mnem = strdup(O->buffer);
+		char *mnem = cs_strdup(O->buffer);
 		char *tab = strchr(mnem, '\t');
 		if (tab)
 			*tab = '\0';
@@ -175,7 +208,7 @@ void Mips_printInst(MCInst *MI, SStream *O, void *info)
 		unsigned id = Mips_map_insn(mnem);
 		MCInst_setOpcode(MI, Mips_get_insn_id2(id));
 		MCInst_setOpcodePub(MI, id);
-		free(mnem);
+		cs_mem_free(mnem);
 	}
 
 	switch (MCInst_getOpcode(MI)) {

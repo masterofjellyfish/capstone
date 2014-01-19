@@ -21,18 +21,17 @@
 #include "PPCInstPrinter.h"
 #include "PPCPredicates.h"
 #include "../../MCInst.h"
-#include "../../cs_priv.h"
+#include "../../utils.h"
 #include "../../SStream.h"
 #include "../../MCRegisterInfo.h"
 #include "../../MathExtras.h"
-#include "../../utils.h"
 #include "mapping.h"
 
 //#include "mapping.h"
 
 static const char *getRegisterName(unsigned RegNo);
 static void printOperand(MCInst *MI, unsigned OpNo, SStream *O);
-static void printInstruction(MCInst *MI, SStream *O);
+static void printInstruction(MCInst *MI, SStream *O, MCRegisterInfo *MRI);
 static void printAbsBranchOperand(MCInst *MI, unsigned OpNo, SStream *O);
 
 static void set_mem_access(MCInst *MI, bool status)
@@ -49,6 +48,19 @@ static void set_mem_access(MCInst *MI, bool status)
 	} else {
 		// done, create the next operand slot
 		MI->flat_insn.ppc.op_count++;
+	}
+}
+
+void PPC_post_printer(csh ud, cs_insn *insn, char *insn_asm)
+{
+	if (((cs_struct *)ud)->detail != CS_OPT_ON)
+		return;
+
+	// check if this insn has branch hint
+	if (strrchr(insn_asm, '+') != NULL) {
+		insn->detail->ppc.bh = PPC_BH_PLUS;
+	} else if (strrchr(insn_asm, '-') != NULL) {
+		insn->detail->ppc.bh = PPC_BH_MINUS;
 	}
 }
 
@@ -127,7 +139,7 @@ void PPC_printInst(MCInst *MI, SStream *O, void *Info)
 	//if (MCInst_getOpcode(MI) == TargetOpcode_COPY_TO_REGCLASS)
 	//	return;
 
-	printInstruction(MI, O);
+	printInstruction(MI, O, NULL);
 }
 
 

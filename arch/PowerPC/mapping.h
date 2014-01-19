@@ -11,7 +11,7 @@
 const char *PPC_reg_name(csh handle, unsigned int reg);
 
 // given internal insn id, return public instruction info
-void PPC_get_insn_id(cs_insn *insn, unsigned int id, int detail);
+void PPC_get_insn_id(cs_struct *h, cs_insn *insn, unsigned int id);
 
 // given public insn id, return internal insn id
 unsigned int PPC_get_insn_id2(unsigned int id);
@@ -24,9 +24,6 @@ ppc_reg PPC_map_insn(const char *name);
 
 // map internal raw register to 'public' register
 ppc_reg PPC_map_register(unsigned int r);
-
-// free insn cache
-void PPC_free_cache(void);
 
 #endif
 

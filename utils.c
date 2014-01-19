@@ -28,7 +28,7 @@ static unsigned short *make_id2insn(insn_map *insns, unsigned int size)
 	unsigned short max_id = insns[size - 1].id;
 	unsigned int i;
 
-	unsigned short *cache = (unsigned short *)calloc(sizeof(*cache), max_id);
+	unsigned short *cache = (unsigned short *)cs_mem_calloc(sizeof(*cache), max_id + 1);
 
 	for (i = 1; i < size; i++)
 		cache[insns[i].id] = i;
@@ -85,4 +85,15 @@ unsigned int count_positive(unsigned char *list)
 	for (c = 0; list[c] > 0; c++);
 
 	return c;
+}
+
+char *cs_strdup(const char *str)
+{
+	size_t len = strlen(str)+ 1;
+	void *new = cs_mem_malloc(len);
+
+	if (new == NULL)
+		return NULL;
+
+	return (char *)memmove(new, str, len);
 }

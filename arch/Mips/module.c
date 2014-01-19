@@ -1,16 +1,17 @@
 /* Capstone Disassembler Engine */
 /* By Dang Hoang Vu <danghvu@gmail.com> 2013 */
 
-#include "../../cs_priv.h"
+#include "../../utils.h"
 #include "../../MCRegisterInfo.h"
 #include "MipsDisassembler.h"
 #include "MipsInstPrinter.h"
 #include "mapping.h"
 
+void enable_mips() {};
 
 static cs_err init(cs_struct *ud)
 {
-	MCRegisterInfo *mri = malloc(sizeof(*mri));
+	MCRegisterInfo *mri = cs_mem_malloc(sizeof(*mri));
 
 	Mips_init(mri);
 	ud->printer = Mips_printInst;
@@ -43,10 +44,9 @@ static cs_err option(cs_struct *handle, cs_opt_type type, size_t value)
 
 static void destroy(cs_struct *handle)
 {
-	Mips_free_cache();
 }
 
-static void __attribute__ ((constructor)) __init_mips__()
+void Mips_enable(void)
 {
 	arch_init[CS_ARCH_MIPS] = init;
 	arch_option[CS_ARCH_MIPS] = option;

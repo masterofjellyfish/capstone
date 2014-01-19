@@ -23,7 +23,6 @@
 
 #include "../../utils.h"
 #include "../../MCInst.h"
-#include "../../cs_priv.h"
 #include "../../SStream.h"
 #include "../../MCRegisterInfo.h"
 #include "mapping.h"
@@ -448,15 +447,15 @@ void X86_ATT_printInst(MCInst *MI, SStream *OS, void *info)
 
 	// Try to print any aliases first.
 	if (printAliasInstr(MI, OS)) {
-		char *mnem = strdup(OS->buffer);
+		char *mnem = cs_strdup(OS->buffer);
 		char *tab = strchr(mnem, '\t');
 		if (tab)
 			*tab = '\0';
 		// reflect the new insn name (alias) in the opcode
 		MCInst_setOpcode(MI, X86_get_insn_id2(X86_map_insn(mnem)));
-		free(mnem);
+		cs_mem_free(mnem);
 	} else
-	   printInstruction(MI, OS);
+	   printInstruction(MI, OS, NULL);
 
 	if (MI->csh->detail) {
 		// first op can be embedded in the asm by llvm.

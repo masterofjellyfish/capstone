@@ -29,6 +29,7 @@ public class Capstone {
     public Arm64.UnionOpInfo arm64;
     public X86.UnionOpInfo x86;
     public Mips.UnionOpInfo mips;
+    public Ppc.UnionOpInfo ppc;
   }
 
   protected static class _cs_insn extends Structure {
@@ -43,7 +44,7 @@ public class Capstone {
     public _cs_insn() {
       bytes = new byte[16];
       mnemonic = new byte[32];
-      operands = new byte[96];
+      operands = new byte[160];
     }
 
     public _cs_insn(Pointer p) {
@@ -143,6 +144,11 @@ public class Capstone {
           detail.arch.read();
           op_info = new X86.OpInfo((X86.UnionOpInfo) detail.arch.x86);
           break;
+        case CS_ARCH_PPC:
+          detail.arch.setType(Ppc.UnionOpInfo.class);
+          detail.arch.read();
+          op_info = new Ppc.OpInfo((Ppc.UnionOpInfo) detail.arch.ppc);
+          break;
         default:
       }
 
@@ -214,13 +220,14 @@ public class Capstone {
   }
 
   // capstone API version
-  public static final int CS_API_MAJOR = 1;
+  public static final int CS_API_MAJOR = 2;
   public static final int CS_API_MINOR = 0;
 
   public static final int CS_ARCH_ARM = 0;
   public static final int CS_ARCH_ARM64 = 1;
   public static final int CS_ARCH_MIPS = 2;
   public static final int CS_ARCH_X86 = 3;
+  public static final int CS_ARCH_PPC = 4;
 
   public static final int CS_MODE_LITTLE_ENDIAN = 0;  // default mode
   public static final int CS_MODE_ARM = 0;	          // 32-bit ARM
@@ -246,10 +253,11 @@ public class Capstone {
   public static final int CS_OPT_MODE = 3;  // Change engine's mode at run-time
 
   //Capstone option value
-  public static final int CS_OPT_OFF = 0;  // Turn OFF an option (CS_OPT_DETAIL)
+  public static final int CS_OPT_OFF = 0;  // Turn OFF an option - default option of CS_OPT_DETAIL
   public static final int CS_OPT_SYNTAX_INTEL = 1;  // Intel X86 asm syntax - default syntax on X86 (CS_OPT_SYNTAX,  CS_ARCH_X86)
   public static final int CS_OPT_SYNTAX_ATT = 2;    // ATT asm syntax (CS_OPT_SYNTAX, CS_ARCH_X86)
-  public static final int CS_OPT_ON = 3;  // Turn ON an option - this is default option for CS_OPT_DETAIL
+  public static final int CS_OPT_ON = 3;  // Turn ON an option (CS_OPT_DETAIL)
+  public static final int CS_OPT_SYNTAX_NOREGNAME = 3; // PPC asm syntax: Prints register name with only number (CS_OPT_SYNTAX)
 
   protected class NativeStruct {
       private NativeLong csh;
@@ -273,6 +281,7 @@ public class Capstone {
       throw new RuntimeException("ERROR: Wrong arch or mode");
     }
     ns.csh = ns.handleRef.getValue();
+    this.detail = CS_OPT_OFF;
   }
 
   public void setSyntax(int syntax) {

@@ -29,7 +29,6 @@
 #include "../../MCRegisterInfo.h"
 #include "../../utils.h"
 #include "mapping.h"
-#include "../../cs_priv.h"
 
 #define GET_SUBTARGETINFO_ENUM
 #include "ARMGenSubtargetInfo.inc"
@@ -520,7 +519,7 @@ void ARM_printInst(MCInst *MI, SStream *O, void *Info)
 					NewReg = MCOperand_CreateReg(MCRegisterInfo_getMatchingSuperReg(MRI, Reg, ARM_gsub_0,
 								MCRegisterInfo_getRegClass(MRI, ARM_GPRPairRegClassID)));
 					MCInst_addOperand2(&NewMI, NewReg);
-					free(NewReg);
+					cs_mem_free(NewReg);
 
 					// Copy the rest operands into NewMI.
 					unsigned i;
@@ -564,7 +563,7 @@ static void printOperand(MCInst *MI, unsigned OpNo, SStream *O)
 		// to reflect absolute address. 
 		// Note: in ARM, PC is always 2 instructions ahead, so we have to
 		// add 8 in ARM mode, or 4 in Thumb mode
-		if (ARM_rel_branch(MCInst_getOpcode(MI))) {
+		if (ARM_rel_branch(MI->csh, MCInst_getOpcode(MI))) {
 			// only do this for relative branch
 			if (MI->csh->mode & CS_MODE_THUMB)
 				imm += MI->address + 4;

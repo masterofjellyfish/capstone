@@ -6,7 +6,6 @@
 
 #include "../../include/arm64.h"
 #include "../../utils.h"
-#include "../../cs_priv.h"
 
 #include "mapping.h"
 
@@ -2992,18 +2991,16 @@ static insn_map alias_insns[] = {
 	// { AArch64_SUBSxxx_lsl, ARM64_INS_NEGS, { 0 }, { ARM64_REG_NZCV, 0 }, { 0 } },
 };
 
-static unsigned short *insn_cache = NULL;
-
 // given internal insn id, return public instruction info
-void AArch64_get_insn_id(cs_insn *insn, unsigned int id, int detail)
+void AArch64_get_insn_id(cs_struct *h, cs_insn *insn, unsigned int id)
 {
-	int i = insn_find(insns, ARR_SIZE(insns), id, &insn_cache);
+	int i = insn_find(insns, ARR_SIZE(insns), id, &h->insn_cache);
 	if (i != 0) {
 		insn->id = insns[i].mapid;
 
-		if (detail) {
+		if (h->detail) {
 			cs_struct handle;
-			handle.detail = detail;
+			handle.detail = h->detail;
 
 			memcpy(insn->detail->regs_read, insns[i].regs_use, sizeof(insns[i].regs_use));
 			insn->detail->regs_read_count = count_positive(insns[i].regs_use);
@@ -3505,14 +3502,18 @@ const char *AArch64_insn_name(csh handle, unsigned int id)
 	if (id >= ARM64_INS_MAX)
 		return NULL;
 
-	// try with alias insn first
+	if (id < ARR_SIZE(insn_name_maps))
+		return insn_name_maps[id].name;
+
+	// then find alias insn
 	int i;
 	for (i = 0; i < ARR_SIZE(alias_insn_name_maps); i++) {
 		if (alias_insn_name_maps[i].id == id)
 			return alias_insn_name_maps[i].name;
 	}
 
-	return insn_name_maps[id].name;
+	// not found
+	return NULL;
 }
 
 // map instruction name to public instruction ID
@@ -3526,11 +3527,4 @@ arm64_reg AArch64_map_insn(const char *name)
 		i = name2id(alias_insn_name_maps, ARR_SIZE(alias_insn_name_maps), name);
 
 	return (i != -1)? i : ARM64_REG_INVALID;
-}
-
-void AArch64_free_cache(void)
-{
-	free(insn_cache);
-
-	insn_cache = NULL;
 }

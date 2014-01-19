@@ -7,18 +7,60 @@
 #include <string.h>
 #include <capstone.h>
 
-#include "cs_priv.h"
-
-#include "MCRegisterInfo.h"
-
 #include "utils.h"
+#include "MCRegisterInfo.h"
 
 cs_err (*arch_init[MAX_ARCH])(cs_struct *) = { NULL };
 cs_err (*arch_option[MAX_ARCH]) (cs_struct *, cs_opt_type, size_t value) = { NULL };
 void (*arch_destroy[MAX_ARCH]) (cs_struct *) = { NULL };
 
+extern void ARM_enable(void);
+extern void AArch64_enable(void);
+extern void Mips_enable(void);
+extern void X86_enable(void);
+extern void PPC_enable(void);
+
+static void archs_enable(void)
+{
+	static bool initialized = false;
+
+	if (initialized)
+		return;
+
+#ifdef CAPSTONE_HAS_ARM
+	ARM_enable();
+#endif
+#ifdef CAPSTONE_HAS_ARM64
+	AArch64_enable();
+#endif
+#ifdef CAPSTONE_HAS_MIPS
+	Mips_enable();
+#endif
+#ifdef CAPSTONE_HAS_X86
+	X86_enable();
+#endif
+#ifdef CAPSTONE_HAS_POWERPC
+	PPC_enable();
+#endif
+
+	initialized = true;
+}
+
 unsigned int all_arch = 0;
 
+#ifdef USE_SYS_DYN_MEM
+cs_malloc_t cs_mem_malloc = malloc;
+cs_calloc_t cs_mem_calloc = calloc;
+cs_realloc_t cs_mem_realloc = realloc;
+cs_free_t cs_mem_free = free;
+cs_vsnprintf_t cs_vsnprintf = vsnprintf;
+#else
+cs_malloc_t cs_mem_malloc = NULL;
+cs_calloc_t cs_mem_calloc = NULL;
+cs_realloc_t cs_mem_realloc = NULL;
+cs_free_t cs_mem_free = NULL;
+cs_vsnprintf_t cs_vsnprintf = NULL;
+#endif
 
 unsigned int cs_version(int *major, int *minor)
 {
@@ -30,7 +72,7 @@ unsigned int cs_version(int *major, int *minor)
 	return (CS_API_MAJOR << 8) + CS_API_MINOR;
 }
 
-bool cs_support(cs_arch arch)
+bool cs_support(int arch)
 {
 	if (arch == CS_ARCH_ALL)
 		return all_arch == ((1 << CS_ARCH_ARM) | (1 << CS_ARCH_ARM64) |
@@ -71,36 +113,45 @@ const char *cs_strerror(cs_err code)
 			return "Invalid option (CS_ERR_OPTION)";
 		case CS_ERR_DETAIL:
 			return "Details are unavailable (CS_ERR_DETAIL)";
+		case CS_ERR_MEMSETUP:
+			return "Dynamic memory management uninitialized (CS_ERR_MEMSETUP)";
 	}
 }
 
 cs_err cs_open(cs_arch arch, cs_mode mode, csh *handle)
 {
-	cs_struct *ud;
+	if (!cs_mem_malloc || !cs_mem_calloc || !cs_mem_realloc || !cs_mem_free || !cs_vsnprintf)
+		// Error: before cs_open(), dynamic memory management must be initialized
+		// with cs_option(CS_OPT_MEM)
+		return CS_ERR_MEMSETUP;
 
-	ud = calloc(1, sizeof(*ud));
-	if (!ud) {
-		// memory insufficient
-		return CS_ERR_MEM;
-	}
+	archs_enable();
 
-	if (arch < CS_ARCH_MAX && arch_init[ud->arch]) {
+	if (arch < CS_ARCH_MAX && arch_init[arch]) {
+		cs_struct *ud;
+
+		ud = cs_mem_calloc(1, sizeof(*ud));
+		if (!ud) {
+			// memory insufficient
+			return CS_ERR_MEM;
+		}
+
 		ud->errnum = CS_ERR_OK;
 		ud->arch = arch;
 		ud->mode = mode;
 		ud->big_endian = mode & CS_MODE_BIG_ENDIAN;
-		ud->reg_name = NULL;
-		ud->detail = CS_OPT_ON;	// by default break instruction into details
+		// by default, do not break instruction into details
+		ud->detail = CS_OPT_OFF;
 
 		arch_init[ud->arch](ud);
+
+		*handle = (uintptr_t)ud;
+
+		return CS_ERR_OK;
 	} else {
 		*handle = 0;
 		return CS_ERR_ARCH;
 	}
-
-	*handle = (uintptr_t)ud;
-
-	return CS_ERR_OK;
 }
 
 cs_err cs_close(csh handle)
@@ -117,17 +168,17 @@ cs_err cs_close(csh handle)
 		case CS_ARCH_MIPS:
 		case CS_ARCH_ARM64:
 		case CS_ARCH_PPC:
-			free(ud->printer_info);
+			cs_mem_free(ud->printer_info);
 			break;
 		default:	// unsupported architecture
 			return CS_ERR_HANDLE;
 	}
 
-	if (arch_destroy[ud->arch])
-		arch_destroy[ud->arch](ud);
+	// arch_destroy[ud->arch](ud);
 
+	cs_mem_free(ud->insn_cache);
 	memset(ud, 0, sizeof(*ud));
-	free(ud);
+	cs_mem_free(ud);
 
 	return CS_ERR_OK;
 }
@@ -159,7 +210,7 @@ static void fill_insn(cs_struct *handle, cs_insn *insn, char *buffer, MCInst *mc
 
 	// map internal instruction opcode to public insn ID
 	if (handle->insn_id)
-		handle->insn_id(insn, MCInst_getOpcode(mci), handle->detail);
+		handle->insn_id(handle, insn, MCInst_getOpcode(mci));
 
 	// alias instruction might have ID saved in OpcodePub
 	if (MCInst_getOpcodePub(mci))
@@ -191,6 +242,20 @@ static void fill_insn(cs_struct *handle, cs_insn *insn, char *buffer, MCInst *mc
 
 cs_err cs_option(csh ud, cs_opt_type type, size_t value)
 {
+	// cs_option() can be called with NULL handle just for CS_OPT_MEM
+	// This is supposed to be executed before all other APIs (even cs_open())
+	if (type == CS_OPT_MEM) {
+		cs_opt_mem *mem = (cs_opt_mem *)value;
+
+		cs_mem_malloc = mem->malloc;
+		cs_mem_calloc = mem->calloc;
+		cs_mem_realloc = mem->realloc;
+		cs_mem_free = mem->free;
+		cs_vsnprintf = mem->vsnprintf;
+
+		return CS_ERR_OK;
+	}
+
 	cs_struct *handle = (cs_struct *)(uintptr_t)ud;
 	if (!handle)
 		return CS_ERR_CSH;
@@ -243,7 +308,7 @@ size_t cs_disasm_ex(csh ud, const uint8_t *buffer, size_t size, uint64_t offset,
 				mci.flat_insn.address = offset;
 				mci.flat_insn.size = insn_size;
 				// allocate memory for @detail pointer
-				insn_cache[f].detail = calloc(1, sizeof(cs_detail));
+				insn_cache[f].detail = cs_mem_calloc(1, sizeof(cs_detail));
 			}
 
 			handle->printer(&mci, &ss, handle->printer_info);
@@ -255,9 +320,9 @@ size_t cs_disasm_ex(csh ud, const uint8_t *buffer, size_t size, uint64_t offset,
 			if (f == ARR_SIZE(insn_cache)) {
 				// resize total to contain newly disasm insns
 				total_size += sizeof(insn_cache);
-				void *tmp = realloc(total, total_size);
+				void *tmp = cs_mem_realloc(total, total_size);
 				if (tmp == NULL) {	// insufficient memory
-					free(total);
+					cs_mem_free(total);
 					handle->errnum = CS_ERR_MEM;
 					return 0;
 				}
@@ -284,9 +349,9 @@ size_t cs_disasm_ex(csh ud, const uint8_t *buffer, size_t size, uint64_t offset,
 
 	if (f) {
 		// resize total to contain newly disasm insns
-		void *tmp = realloc(total, total_size + f * sizeof(insn_cache[0]));
+		void *tmp = cs_mem_realloc(total, total_size + f * sizeof(insn_cache[0]));
 		if (tmp == NULL) {	// insufficient memory
-			free(total);
+			cs_mem_free(total);
 			handle->errnum = CS_ERR_MEM;
 			return 0;
 		}
@@ -306,10 +371,10 @@ void cs_free(cs_insn *insn, size_t count)
 
 	// free all detail pointers
 	for (i = 0; i < count; i++)
-		free(insn[i].detail);
+		cs_mem_free(insn[i].detail);
 
 	// then free pointer to cs_insn array
-	free(insn);
+	cs_mem_free(insn);
 }
 
 // return friendly name of regiser in a string
@@ -353,7 +418,6 @@ bool cs_insn_group(csh ud, cs_insn *insn, unsigned int group_id)
 		return false;
 
 	cs_struct *handle = (cs_struct *)(uintptr_t)ud;
-
 	if (!handle->detail) {
 		handle->errnum = CS_ERR_DETAIL;
 		return false;
@@ -368,7 +432,6 @@ bool cs_reg_read(csh ud, cs_insn *insn, unsigned int reg_id)
 		return false;
 
 	cs_struct *handle = (cs_struct *)(uintptr_t)ud;
-
 	if (!handle->detail) {
 		handle->errnum = CS_ERR_DETAIL;
 		return false;
@@ -383,7 +446,6 @@ bool cs_reg_write(csh ud, cs_insn *insn, unsigned int reg_id)
 		return false;
 
 	cs_struct *handle = (cs_struct *)(uintptr_t)ud;
-
 	if (!handle->detail) {
 		handle->errnum = CS_ERR_DETAIL;
 		return false;
@@ -398,6 +460,11 @@ int cs_op_count(csh ud, cs_insn *insn, unsigned int op_type)
 		return -1;
 
 	cs_struct *handle = (cs_struct *)(uintptr_t)ud;
+	if (!handle->detail) {
+		handle->errnum = CS_ERR_DETAIL;
+		return -1;
+	}
+
 	unsigned int count = 0, i;
 
 	handle->errnum = CS_ERR_OK;
@@ -443,6 +510,11 @@ int cs_op_index(csh ud, cs_insn *insn, unsigned int op_type,
 		return -1;
 
 	cs_struct *handle = (cs_struct *)(uintptr_t)ud;
+	if (!handle->detail) {
+		handle->errnum = CS_ERR_DETAIL;
+		return -1;
+	}
+
 	unsigned int count = 0, i;
 
 	handle->errnum = CS_ERR_OK;

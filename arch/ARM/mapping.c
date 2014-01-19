@@ -251,6 +251,7 @@ static insn_map insns[] = {
 	{ ARM_LDRBi12, ARM_INS_LDRB, { 0 }, { 0 }, { ARM_GRP_ARM, 0 }, 0, 0 },
 	{ ARM_LDRBrs, ARM_INS_LDRB, { 0 }, { 0 }, { ARM_GRP_ARM, 0 }, 0, 0 },
 	{ ARM_LDRD, ARM_INS_LDRD, { 0 }, { 0 }, { ARM_GRP_ARM, ARM_GRP_V5TE, 0 }, 0, 0 },
+	{ ARM_LDRD_PAIR, ARM_INS_LDRD, { 0 }, { 0 }, { ARM_GRP_ARM, ARM_GRP_V5TE, 0 }, 0, 0 },
 	{ ARM_LDRD_POST, ARM_INS_LDRD, { 0 }, { 0 }, { ARM_GRP_ARM, 0 }, 0, 0 },
 	{ ARM_LDRD_PRE, ARM_INS_LDRD, { 0 }, { 0 }, { ARM_GRP_ARM, 0 }, 0, 0 },
 	{ ARM_LDREX, ARM_INS_LDREX, { 0 }, { 0 }, { ARM_GRP_ARM, 0 }, 0, 0 },
@@ -467,6 +468,7 @@ static insn_map insns[] = {
 	{ ARM_STRBi12, ARM_INS_STRB, { 0 }, { 0 }, { ARM_GRP_ARM, 0 }, 0, 0 },
 	{ ARM_STRBrs, ARM_INS_STRB, { 0 }, { 0 }, { ARM_GRP_ARM, 0 }, 0, 0 },
 	{ ARM_STRD, ARM_INS_STRD, { 0 }, { 0 }, { ARM_GRP_ARM, ARM_GRP_V5TE, 0 }, 0, 0 },
+	{ ARM_STRD_PAIR, ARM_INS_STRD, { 0 }, { 0 }, { ARM_GRP_ARM, ARM_GRP_V5TE, 0 }, 0, 0 },
 	{ ARM_STRD_POST, ARM_INS_STRD, { 0 }, { 0 }, { ARM_GRP_ARM, 0 }, 0, 0 },
 	{ ARM_STRD_PRE, ARM_INS_STRD, { 0 }, { 0 }, { ARM_GRP_ARM, 0 }, 0, 0 },
 	{ ARM_STREX, ARM_INS_STREX, { 0 }, { 0 }, { ARM_GRP_ARM, 0 }, 0, 0 },
@@ -2300,18 +2302,15 @@ static insn_map insns[] = {
 	{ ARM_tUXTH, ARM_INS_UXTH, { 0 }, { 0 }, { ARM_GRP_THUMB, ARM_GRP_THUMB1ONLY, ARM_GRP_V6, 0 }, 0, 0 },
 };
 
-
-static unsigned short *insn_cache = NULL;
-
-void ARM_get_insn_id(cs_insn *insn, unsigned int id, int detail)
+void ARM_get_insn_id(cs_struct *h, cs_insn *insn, unsigned int id)
 {
-	int i = insn_find(insns, ARR_SIZE(insns), id, &insn_cache);
+	int i = insn_find(insns, ARR_SIZE(insns), id, &h->insn_cache);
 	if (i != 0) {
 		insn->id = insns[i].mapid;
 
-		if (detail) {
+		if (h->detail) {
 			cs_struct handle;
-			handle.detail = detail;
+			handle.detail = h->detail;
 
 			memcpy(insn->detail->regs_read, insns[i].regs_use, sizeof(insns[i].regs_use));
 			insn->detail->regs_read_count = count_positive(insns[i].regs_use);
@@ -2791,20 +2790,13 @@ arm_reg ARM_map_insn(const char *name)
 	return (i != -1)? i : ARM_REG_INVALID;
 }
 
-bool ARM_rel_branch(unsigned int id)
+bool ARM_rel_branch(cs_struct *h, unsigned int id)
 {
-	int i = insn_find(insns, ARR_SIZE(insns), id, &insn_cache);
+	int i = insn_find(insns, ARR_SIZE(insns), id, &h->insn_cache);
 	if (i != 0)
 		return (insns[i].branch && !insns[i].indirect_branch);
 	else {
 		printf("ALERT: rel_branch() got incorrect id!\n");
 		return false;
 	}
-}
-
-void ARM_free_cache(void)
-{
-	free(insn_cache);
-
-	insn_cache = NULL;
 }

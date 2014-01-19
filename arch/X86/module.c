@@ -7,6 +7,8 @@
 #include "X86InstPrinter.h"
 #include "mapping.h"
 
+void enable_x86() {};
+
 static cs_err init(cs_struct *ud)
 {
 	// by default, we use Intel syntax
@@ -46,10 +48,9 @@ static cs_err option(cs_struct *handle, cs_opt_type type, size_t value)
 
 static void destroy(cs_struct *handle)
 {
-	X86_free_cache();
 }
 
-static void __attribute__ ((constructor)) __init_x86__()
+void X86_enable(void)
 {
 	arch_init[CS_ARCH_X86] = init;
 	arch_option[CS_ARCH_X86] = option;

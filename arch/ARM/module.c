@@ -7,10 +7,9 @@
 #include "ARMInstPrinter.h"
 #include "mapping.h"
 
-
 static cs_err init(cs_struct *ud)
 {
-	MCRegisterInfo *mri = malloc(sizeof(*mri));
+	MCRegisterInfo *mri = cs_mem_malloc(sizeof(*mri));
 
 	ARM_init(mri);
 
@@ -45,10 +44,9 @@ static cs_err option(cs_struct *handle, cs_opt_type type, size_t value)
 
 static void destroy(cs_struct *handle)
 {
-	ARM_free_cache();
 }
 
-static void __attribute__ ((constructor)) __init_arm__()
+void ARM_enable(void)
 {
 	arch_init[CS_ARCH_ARM] = init;
 	arch_option[CS_ARCH_ARM] = option;

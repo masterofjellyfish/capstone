@@ -6,7 +6,6 @@
 
 #include "../../include/ppc.h"
 #include "../../utils.h"
-#include "../../cs_priv.h"
 
 #include "mapping.h"
 
@@ -918,10 +917,8 @@ static insn_map insns[] = {
 static insn_map alias_insns[] = {
 };
 
-static unsigned short *insn_cache = NULL;
-
 // given internal insn id, return public instruction info
-void PPC_get_insn_id(cs_insn *insn, unsigned int id, int detail)
+void PPC_get_insn_id(cs_struct *h, cs_insn *insn, unsigned int id)
 {
 	int i;
 
@@ -930,9 +927,9 @@ void PPC_get_insn_id(cs_insn *insn, unsigned int id, int detail)
 		if (alias_insns[i].id == id) {
 			insn->id = alias_insns[i].mapid;
 
-			if (detail) {
+			if (h->detail) {
 				cs_struct handle;
-				handle.detail = detail;
+				handle.detail = h->detail;
 
 				memcpy(insn->detail->regs_read, alias_insns[i].regs_use, sizeof(alias_insns[i].regs_use));
 				insn->detail->regs_read_count = count_positive(alias_insns[i].regs_use);
@@ -955,13 +952,13 @@ void PPC_get_insn_id(cs_insn *insn, unsigned int id, int detail)
 		}
 	}
 
-	i = insn_find(insns, ARR_SIZE(insns), id, &insn_cache);
+	i = insn_find(insns, ARR_SIZE(insns), id, &h->insn_cache);
 	if (i != 0) {
 		insn->id = insns[i].mapid;
 
-		if (detail) {
+		if (h->detail) {
 			cs_struct handle;
-			handle.detail = detail;
+			handle.detail = h->detail;
 
 			memcpy(insn->detail->regs_read, insns[i].regs_use, sizeof(insns[i].regs_use));
 			insn->detail->regs_read_count = count_positive(insns[i].regs_use);
@@ -1515,11 +1512,4 @@ ppc_reg PPC_map_register(unsigned int r)
 
 	// cannot find this register
 	return 0;
-}
-
-void PPC_free_cache(void)
-{
-	free(insn_cache);
-
-	insn_cache = NULL;
 }

@@ -1,16 +1,17 @@
 /* Capstone Disassembler Engine */
 /* By Dang Hoang Vu <danghvu@gmail.com> 2013 */
 
-#include "../../cs_priv.h"
+#include "../../utils.h"
 #include "../../MCRegisterInfo.h"
 #include "AArch64Disassembler.h"
 #include "AArch64InstPrinter.h"
 #include "mapping.h"
 
+void enable_arm64() {}
 
 static cs_err init(cs_struct *ud)
 {
-	MCRegisterInfo *mri = malloc(sizeof(*mri));
+	MCRegisterInfo *mri = cs_mem_malloc(sizeof(*mri));
 
 	AArch64_init(mri);
 	ud->printer = AArch64_printInst;
@@ -32,10 +33,9 @@ static cs_err option(cs_struct *handle, cs_opt_type type, size_t value)
 
 static void destroy(cs_struct *handle)
 {
-	AArch64_free_cache();
 }
 
-static void __attribute__ ((constructor)) __init_arm64__()
+void AArch64_enable(void)
 {
 	arch_init[CS_ARCH_ARM64] = init;
 	arch_option[CS_ARCH_ARM64] = option;

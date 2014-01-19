@@ -60,7 +60,10 @@ static void print_insn_detail(cs_insn *ins)
 	}
 
 	if (ppc->bc != 0)
-		printf("\tBranch code: %u\n", ins->detail->ppc.bc);
+		printf("\tBranch code: %u\n", ppc->bc);
+
+	if (ppc->bh != 0)
+		printf("\tBranch hint: %u\n", ppc->bh);
 
 	if (ppc->update_cr0)
 		printf("\tUpdate-CR0: True\n");
@@ -87,8 +90,13 @@ static void test()
 	int i;
 
 	for (i = 0; i < sizeof(platforms)/sizeof(platforms[0]); i++) {
-		if (cs_open(platforms[i].arch, platforms[i].mode, &handle))
+		cs_err err = cs_open(platforms[i].arch, platforms[i].mode, &handle);
+		if (err) {
+			printf("Failed on cs_open() with error returned: %u\n", err);
 			return;
+		}
+
+		cs_option(handle, CS_OPT_DETAIL, CS_OPT_ON);
 
 		size_t count = cs_disasm_ex(handle, platforms[i].code, platforms[i].size, address, 0, &insn);
 		if (count) {

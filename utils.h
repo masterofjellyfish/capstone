@@ -4,7 +4,8 @@
 #ifndef CS_UTILS_H
 #define CS_UTILS_H
 
-#include <stdbool.h>
+#include "include/capstone.h"
+#include "cs_priv.h"
 
 // threshold number, so above this number will be printed in hexa mode
 #define HEX_THRESHOLD 9
@@ -47,6 +48,8 @@ unsigned int insn_reverse_id(insn_map *insns, unsigned int max, unsigned int id)
 unsigned int count_positive(unsigned char *list);
 
 #define ARR_SIZE(a) (sizeof(a)/sizeof(a[0]))
+
+char *cs_strdup(const char *str);
 
 #endif
 
