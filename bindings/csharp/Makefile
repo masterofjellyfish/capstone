@@ -10,6 +10,5 @@ all:
 	chmod +x bin/*.exe
 
 clean:
-	rm -rf lib
 	rm -rf bin
 
