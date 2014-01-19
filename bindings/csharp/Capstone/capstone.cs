@@ -133,7 +133,7 @@ namespace Capstone
             public byte[] bytes;
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
             public string mnemonic;
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 96)]
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 160)]
             public string operands;
             public IntPtr detail;
         }
