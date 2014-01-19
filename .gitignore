@@ -54,6 +54,8 @@ capstone.pc
 # Visual Studio cache files
 *.suo
 *.cache
+*.force
+*.dll_here
 
 # local files
 _*
