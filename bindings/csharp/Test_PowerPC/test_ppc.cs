@@ -41,7 +41,7 @@ public class TestPowerPC
     {
         Capstone.PowerPC.CsPowerPC arch = (Capstone.PowerPC.CsPowerPC) insn.Arch;
 
-        byte opcount = arch.OpCount;
+        int opcount = arch.Operands.Length;
 
         if (opcount > 0)
         {

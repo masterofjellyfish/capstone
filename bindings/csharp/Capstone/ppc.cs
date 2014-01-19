@@ -35,8 +35,19 @@ namespace Capstone.PowerPC
         public BH Bh;
         [MarshalAs(UnmanagedType.U1)]
         public bool UpdateCR0;
-        public byte OpCount;
+        private byte OpCount;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
-        public Operand[] Operands;
+        private Operand[] OperandsInternal;
+        public Operand[] Operands
+        {
+            get
+            {
+                int count = this.OpCount;
+                Operand[] OpArray = new Operand[count];
+                Array.Copy(this.OperandsInternal, OpArray, count);
+
+                return OpArray;
+            }
+        }
     }
 }

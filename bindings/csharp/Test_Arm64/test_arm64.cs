@@ -41,7 +41,7 @@ public class TestArm64
     {
         Capstone.Arm64.CsArm64 arch = (Capstone.Arm64.CsArm64) insn.Arch;
 
-        byte opcount = arch.OpCount;
+        int opcount = arch.Operands.Length;
 
         if (opcount > 0)
         {
