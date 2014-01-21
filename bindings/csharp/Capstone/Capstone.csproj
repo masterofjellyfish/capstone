@@ -48,6 +48,8 @@
     <Compile Include="capstone_const.cs" />
     <Compile Include="mips.cs" />
     <Compile Include="mips_const.cs" />
+    <Compile Include="ppc.cs" />
+    <Compile Include="ppc_const.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="x86.cs" />
     <Compile Include="x86_const.cs" />

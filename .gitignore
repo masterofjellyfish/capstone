@@ -44,24 +44,19 @@ tests/test_arm
 tests/test_arm64
 tests/test_mips
 tests/test_x86
-<<<<<<< HEAD
-=======
 tests/test_ppc
 tests/*.static
->>>>>>> upstream/master
 
 # vim tmp file
 *.swp
 
 capstone.pc
-<<<<<<< HEAD
-=======
+
 # Visual Studio cache files
 *.suo
 *.cache
 *.force
 *.dll_here
->>>>>>> 573ea42... Ignore additional temporary files
 
 # local files
 _*

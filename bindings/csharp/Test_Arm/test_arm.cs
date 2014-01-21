@@ -161,6 +161,7 @@ public class TestArm
 
             Capstone.Capstone cs = new Capstone.Capstone(platforms[j].arch, platforms[j].mode);
             cs.SetSyntax(platforms[j].syntax);
+            cs.SetDetail(true);
             Instruction[] insns = cs.Disassemble(platforms[j].code, address, insnCount);
             for (int i = 0; i < insns.Length; i++)
             {

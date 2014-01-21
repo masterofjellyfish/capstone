@@ -17,7 +17,7 @@ Linux build steps (tested in Ubuntu 12.0.4 LTS i386):
 
 Notes:
 
-* libcapstone.dll or libcapston.so must reside in an x86 or x64 folder adjacent to capstone.dll (the C# binding library). For example, if capstone.dll resides in C:\Temp\capstone, libcapstone.dll must reside in C:\Temp\capstone\x86 and C:\Temp\capstone\x64, respectfully.
+* libcapstone.dll must reside in an x86 or x64 folder adjacent to capstone.dll (the C# binding library). For example, if capstone.dll resides in C:\Temp\capstone, libcapstone.dll must reside in C:\Temp\capstone\x86 and C:\Temp\capstone\x64, respectfully.
 
 Known issues:
 
