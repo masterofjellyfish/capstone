@@ -1,6 +1,6 @@
 # Capstone Python bindings, by Nguyen Anh Quynnh <aquynh@gmail.com>
 
-import arm, arm64, mips, x86
+import arm, arm64, mips, x86, ppc
 
 __all__ = [
     'Cs',
@@ -47,7 +47,7 @@ __all__ = [
 # Capstone C interface
 
 # API version
-CS_API_MAJOR = 1
+CS_API_MAJOR = 2
 CS_API_MINOR = 0
 
 # architectures
@@ -72,10 +72,21 @@ CS_OPT_SYNTAX = 1    # Intel X86 asm syntax (CS_ARCH_X86 arch)
 CS_OPT_DETAIL = 2   # Break down instruction structure into details
 
 # Capstone option value
+<<<<<<< HEAD
 CS_OPT_OFF = 0             # Turn OFF an option (CS_OPT_DETAIL)
 CS_OPT_SYNTAX_INTEL = 1    # Intel X86 asm syntax - default syntax on X86 (CS_OPT_SYNTAX, CS_ARCH_X86)
 CS_OPT_SYNTAX_ATT = 2      # ATT asm syntax (CS_OPT_SYNTAX, CS_ARCH_X86)
 CS_OPT_ON = 3              # Turn ON an option - this is default option for CS_OPT_DETAIL
+=======
+CS_OPT_OFF = 0             # Turn OFF an option - default option of CS_OPT_DETAIL
+CS_OPT_ON = 3              # Turn ON an option (CS_OPT_DETAIL)
+
+# Capstone syntax value
+CS_OPT_SYNTAX_DEFAULT = 0    # Default assembly syntax of all platforms (CS_OPT_SYNTAX)
+CS_OPT_SYNTAX_INTEL = 1    # Intel X86 asm syntax - default syntax on X86 (CS_OPT_SYNTAX, CS_ARCH_X86)
+CS_OPT_SYNTAX_ATT = 2      # ATT asm syntax (CS_OPT_SYNTAX, CS_ARCH_X86)
+CS_OPT_SYNTAX_NOREGNAME = 3   # Asm syntax prints register name with only number - (CS_OPT_SYNTAX, CS_ARCH_PPC)
+>>>>>>> upstream/master
 
 # Capstone error type
 CS_ERR_OK = 0      # No error: everything was fine
@@ -87,12 +98,15 @@ CS_ERR_MODE = 5    # Invalid/unsupported mode: cs_open()
 CS_ERR_OPTION = 6  # Invalid/unsupported option: cs_option()
 
 
-import ctypes, ctypes.util
-from os.path import split, join
+import ctypes, ctypes.util, sys
+from os.path import split, join, dirname
 import distutils.sysconfig
 
 
-# load all the libs
+import inspect
+if not hasattr(sys.modules[__name__], '__file__'):
+    __file__ = inspect.getfile(inspect.currentframe())
+
 _lib_path = split(__file__)[0]
 _all_libs = ['libcapstone.dll', 'libcapstone.so', 'libcapstone.dylib']
 _found = False
@@ -138,6 +152,7 @@ class _cs_arch(ctypes.Union):
         ('arm', arm.CsArm),
         ('mips', mips.CsMips),
         ('x86', x86.CsX86),
+        ('ppc', ppc.CsPpc),
     )
 
 # low-level structure for C code
@@ -148,6 +163,7 @@ class _cs_insn(ctypes.Structure):
         ('size', ctypes.c_uint16),
         ('bytes', ctypes.c_ubyte * 16),
         ('mnemonic', ctypes.c_char * 32),
+<<<<<<< HEAD
         ('op_str', ctypes.c_char * 96),
         ('regs_read', ctypes.c_uint * 32),
         ('regs_read_count', ctypes.c_uint),
@@ -156,6 +172,10 @@ class _cs_insn(ctypes.Structure):
         ('groups', ctypes.c_uint * 8),
         ('groups_count', ctypes.c_uint),
         ('arch', _cs_arch),
+=======
+        ('op_str', ctypes.c_char * 160),
+        ('detail', ctypes.POINTER(_cs_detail)),
+>>>>>>> upstream/master
     )
 
 # setup all the function prototype
@@ -220,6 +240,8 @@ def cs_disasm_quick(arch, mode, code, offset, count = 0):
         status = _cs.cs_errno(csh)
         if status != CS_ERR_OK:
             raise CsError(status)
+        return
+        yield
 
     status = _cs.cs_close(csh)
     if status != CS_ERR_OK:
@@ -229,6 +251,7 @@ def cs_disasm_quick(arch, mode, code, offset, count = 0):
 
 # Python-style class to disasm code
 class CsInsn(object):
+<<<<<<< HEAD
     def __init__(self, csh, all_info, arch):
         self.id = all_info.id
         self.address = all_info.address
@@ -266,6 +289,104 @@ class CsInsn(object):
     # get the instruction string
     def insn_name(self):
         return _cs.cs_insn_name(self.csh, self.id)
+=======
+    def __init__(self, cs, all_info):
+        self._raw = all_info
+        self._cs = cs
+
+    @property
+    def id(self):
+        return self._raw.id
+
+    @property
+    def address(self):
+        return self._raw.address
+
+    @property
+    def size(self):
+        return self._raw.size
+
+    @property
+    def bytes(self):
+        return bytearray(self._raw.bytes)[:self._raw.size]
+
+    @property
+    def mnemonic(self):
+        return self._raw.mnemonic
+
+    @property
+    def op_str(self):
+        return self._raw.op_str
+
+    @property
+    def regs_read(self):
+        if self._cs._detail:
+            detail = self._raw.detail.contents
+            return detail.regs_read[:detail.regs_read_count]
+
+        raise CsError(CS_ERR_DETAIL)
+
+    @property
+    def regs_write(self):
+        if self._cs._detail:
+            detail = self._raw.detail.contents
+            return detail.regs_write[:detail.regs_write_count]
+
+        raise CsError(CS_ERR_DETAIL)
+
+    @property
+    def groups(self):
+        if self._cs._detail:
+            detail = self._raw.detail.contents
+            return detail.groups[:detail.groups_count]
+
+        raise CsError(CS_ERR_DETAIL)
+
+    def __gen_detail(self):
+        arch = self._cs.arch
+        detail = self._raw.detail.contents
+        if arch == CS_ARCH_ARM:
+            (self.cc, self.update_flags, self.writeback, self.operands) = \
+                arm.get_arch_info(detail.arch.arm)
+        elif arch == CS_ARCH_ARM64:
+            (self.cc, self.update_flags, self.writeback, self.operands) = \
+                arm64.get_arch_info(detail.arch.arm64)
+        elif arch == CS_ARCH_X86:
+            (self.prefix, self.segment, self.opcode, self.op_size, self.addr_size, \
+                self.disp_size, self.imm_size, self.modrm, self.sib, self.disp, \
+                self.sib_index, self.sib_scale, self.sib_base, self.operands) = x86.get_arch_info(detail.arch.x86)
+        elif arch == CS_ARCH_MIPS:
+                self.operands = mips.get_arch_info(detail.arch.mips)
+        elif arch == CS_ARCH_PPC:
+            (self.bc, self.bh, self.update_cr0, self.operands) = \
+                ppc.get_arch_info(detail.arch.ppc)
+
+    def __getattr__(self, name):
+        if not self._cs._detail:
+            raise CsError(CS_ERR_DETAIL)
+
+        attr = object.__getattribute__
+        if not attr(self, '_cs')._detail:
+            return None
+        _dict = attr(self, '__dict__')
+        if 'operands' not in _dict:
+            self.__gen_detail()
+        if name not in _dict:
+            return None
+        return _dict[name]
+
+    # get the last error code
+    def errno(self):
+        return _cs.cs_errno(self._cs.csh)
+
+    # get the register name, given the register ID
+    def reg_name(self, reg_id):
+        return _cs.cs_reg_name(self._cs.csh, reg_id)
+
+    # get the instruction string
+    def insn_name(self):
+        return _cs.cs_insn_name(self._cs.csh, self.id)
+>>>>>>> upstream/master
 
     # verify if this insn belong to group with id as @group_id
     def group(self, group_id):
@@ -306,13 +427,20 @@ class Cs(object):
             self.csh = None
             raise CsError(status)
 
+        try:
+            import ccapstone
+            # rewire disasm to use the faster version
+            self.disasm = ccapstone.Cs(self).disasm
+        except:
+            pass
+
         if arch == CS_ARCH_X86:
             # Intel syntax is default for X86
             self._syntax = CS_OPT_SYNTAX_INTEL
         else:
             self._syntax = None
 
-        self._detail = True    # by default, get instruction details
+        self._detail = False    # by default, do not produce instruction details
 
     def __del__(self):
         if self.csh:
@@ -362,6 +490,8 @@ class Cs(object):
             status = _cs.cs_errno(self.csh)
             if status != CS_ERR_OK:
                 raise CsError(status)
+            return
+            yield
 
         return insns
 

@@ -9,6 +9,8 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include <stdio.h>
+#include <stdarg.h>
 #include <stdbool.h>
 
 // Capstone API version
@@ -41,18 +43,49 @@ typedef enum cs_mode {
 	CS_MODE_BIG_ENDIAN = 1 << 31	// big endian mode
 } cs_mode;
 
+typedef void* (*cs_malloc_t)(size_t size);
+typedef void* (*cs_calloc_t)(size_t nmemb, size_t size);
+typedef void* (*cs_realloc_t)(void *ptr, size_t size);
+typedef void (*cs_free_t)(void *ptr);
+typedef int (*cs_vsnprintf_t)(char *str, size_t size, const char *format, va_list ap);
+
+
+// User-defined dynamic memory related functions: malloc/calloc/realloc/free/vsnprintf()
+// By default, Capstone uses system's malloc(), calloc(), realloc(), free() & vsnprintf().
+typedef struct cs_opt_mem {
+	cs_malloc_t malloc;
+	cs_calloc_t calloc;
+	cs_realloc_t realloc;
+	cs_free_t free;
+	cs_vsnprintf_t vsnprintf;
+} cs_opt_mem;
+
 // Runtime option for the disassembled engine
 typedef enum cs_opt_type {
 	CS_OPT_SYNTAX = 1,	// Asssembly output syntax
 	CS_OPT_DETAIL,	// Break down instruction structure into details
+<<<<<<< HEAD
+=======
+	CS_OPT_MODE,	// Change engine's mode at run-time
+	CS_OPT_MEM,	// User-defined dynamic memory related functions
+>>>>>>> upstream/master
 } cs_opt_type;
 
 // Runtime option value (associated with option type above)
 typedef enum cs_opt_value {
+<<<<<<< HEAD
 	CS_OPT_OFF = 0,  // Turn OFF an option (CS_OPT_DETAIL)
 	CS_OPT_SYNTAX_INTEL = 1, // X86 Intel asm syntax - default syntax on X86 (CS_OPT_SYNTAX).
 	CS_OPT_SYNTAX_ATT,   // X86 ATT asm syntax (CS_OPT_SYNTAX)
 	CS_OPT_ON, // Turn ON an option - default option for CS_OPT_DETAIL
+=======
+	CS_OPT_OFF = 0,  // Turn OFF an option - default option for CS_OPT_DETAIL.
+	CS_OPT_ON = 3, // Turn ON an option (CS_OPT_DETAIL).
+	CS_OPT_SYNTAX_DEFAULT = 0, // Default asm syntax (CS_OPT_SYNTAX).
+	CS_OPT_SYNTAX_INTEL, // X86 Intel asm syntax - default on X86 (CS_OPT_SYNTAX).
+	CS_OPT_SYNTAX_ATT,   // X86 ATT asm syntax (CS_OPT_SYNTAX).
+	CS_OPT_SYNTAX_NOREGNAME, // PPC asm syntax: Prints register name with only number (CS_OPT_SYNTAX)
+>>>>>>> upstream/master
 } cs_opt_value;
 
 
@@ -86,7 +119,7 @@ typedef struct cs_insn {
 
 	// Ascii text of instruction operands
 	// This information is available even when CS_OPT_DETAIL = CS_OPT_OFF
-	char op_str[96];
+	char op_str[160];
 
 	// NOTE: All information below is not available when CS_OPT_DETAIL = CS_OPT_OFF
 
@@ -122,9 +155,14 @@ typedef enum cs_err {
 	CS_ERR_MEM,		// Out-Of-Memory error: cs_open(), cs_disasm_dyn()
 	CS_ERR_ARCH,	// Unsupported architecture: cs_open()
 	CS_ERR_HANDLE,	// Invalid handle: cs_op_count(), cs_op_index()
-	CS_ERR_CSH,		// Invalid csh argument: cs_close(), cs_errno(), cs_option()
+	CS_ERR_CSH,	    // Invalid csh argument: cs_close(), cs_errno(), cs_option()
 	CS_ERR_MODE,	// Invalid/unsupported mode: cs_open()
 	CS_ERR_OPTION,	// Invalid/unsupported option: cs_option()
+<<<<<<< HEAD
+=======
+	CS_ERR_DETAIL,	// Information is unavailable because detail option is OFF
+	CS_ERR_MEMSETUP, // Dynamic memory management uninitialized (see CS_OPT_MEM)
+>>>>>>> upstream/master
 } cs_err;
 
 
@@ -136,7 +174,11 @@ typedef enum cs_err {
 
  For example, first API version would return 1 in @major, and 0 in @minor
 */
+<<<<<<< HEAD
 void cs_version(int *major, int *minor);
+=======
+bool cs_support(int arch);
+>>>>>>> upstream/master
 
 /*
  Initialize CS handle: this must be done before any usage of CS.
@@ -169,6 +211,10 @@ cs_err cs_close(csh handle);
 
  @return CS_ERR_OK on success, or other value on failure.
  Refer to cs_err enum for detailed error.
+
+ NOTE: in the case of CS_OPT_MEM, handle's value can be anything,
+ so that cs_option(handle, CS_OPT_MEM, value) can (i.e must) be called
+ even before cs_open()
 */
 cs_err cs_option(csh handle, cs_opt_type type, size_t value);
 
@@ -265,6 +311,8 @@ const char *cs_insn_name(csh handle, unsigned int insn_id);
  Find the group id from header file of corresponding architecture (arm.h for ARM, x86.h for X86, ...)
  Internally, this simply verifies if @group_id matches any member of insn->groups array.
 
+ NOTE: this API is only valid when detail option is ON (which is OFF by default)
+
  @handle: handle returned by cs_open()
  @insn: disassembled instruction structure received from cs_disasm() or cs_disasm_dyn()
  @group_id: group that you want to check if this instruction belong to.
@@ -278,7 +326,13 @@ bool cs_insn_group(csh handle, cs_insn *insn, unsigned int group_id);
  Find the register id from header file of corresponding architecture (arm.h for ARM, x86.h for X86, ...)
  Internally, this simply verifies if @reg_id matches any member of insn->regs_read array.
 
+<<<<<<< HEAD
  @insn: disassembled instruction structure received from cs_disasm() or cs_disasm_dyn()
+=======
+ NOTE: this API is only valid when detail option is ON (which is OFF by default)
+
+ @insn: disassembled instruction structure received from cs_disasm() or cs_disasm_ex()
+>>>>>>> upstream/master
  @reg_id: register that you want to check if this instruction used it.
 
  @return: true if this instruction indeed implicitly used aboved register, or false otherwise.
@@ -290,7 +344,13 @@ bool cs_reg_read(csh handle, cs_insn *insn, unsigned int reg_id);
  Find the register id from header file of corresponding architecture (arm.h for ARM, x86.h for X86, ...)
  Internally, this simply verifies if @reg_id matches any member of insn->regs_write array.
 
+<<<<<<< HEAD
  @insn: disassembled instruction structure received from cs_disasm() or cs_disasm_dyn()
+=======
+ NOTE: this API is only valid when detail option is ON (which is OFF by default)
+
+ @insn: disassembled instruction structure received from cs_disasm() or cs_disasm_ex()
+>>>>>>> upstream/master
  @reg_id: register that you want to check if this instruction modified it.
 
  @return: true if this instruction indeed implicitly modified aboved register, or false otherwise.
@@ -300,6 +360,8 @@ bool cs_reg_write(csh handle, cs_insn *insn, unsigned int reg_id);
 /*
  Count the number of operands of a given type.
  Find the operand type in header file of corresponding architecture (arm.h for ARM, x86.h for X86, ...)
+
+ NOTE: this API is only valid when detail option is ON (which is OFF by default)
 
  @handle: handle returned by cs_open()
  @insn: disassembled instruction structure received from cs_disasm() or cs_disasm_dyn()
@@ -314,6 +376,8 @@ int cs_op_count(csh handle, cs_insn *insn, unsigned int op_type);
  Retrieve the position of operand of given type in arch.op_info[] array.
  Later, the operand can be accessed using the returned position.
  Find the operand type in header file of corresponding architecture (arm.h for ARM, x86.h for X86, ...)
+
+ NOTE: this API is only valid when detail option is ON (which is OFF by default)
 
  @handle: handle returned by cs_open()
  @insn: disassembled instruction structure received from cs_disasm() or cs_disasm_dyn()

@@ -59,7 +59,7 @@ def test_class():
     
         try:
             md = Cs(arch, mode)
-            # md.detail = False
+            md.detail = True
 
             if syntax != 0:
                 md.syntax = syntax

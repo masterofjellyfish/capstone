@@ -85,7 +85,11 @@ static void print_insn_detail(cs_insn *ins)
 	}
 
 	if (arm->cc != ARM_CC_AL && arm->cc != ARM_CC_INVALID)
+<<<<<<< HEAD
 		printf("\tCode condition: %u\n", ins->arm.cc);
+=======
+		printf("\tCode condition: %u\n", arm->cc);
+>>>>>>> upstream/master
 
 	if (arm->update_flags)
 		printf("\tUpdate-flags: True\n");
@@ -193,8 +197,13 @@ static void test()
 	int i;
 
 	for (i = 0; i < sizeof(platforms)/sizeof(platforms[0]); i++) {
-		if (cs_open(platforms[i].arch, platforms[i].mode, &handle))
+		cs_err err = cs_open(platforms[i].arch, platforms[i].mode, &handle);
+		if (err) {
+			printf("Failed on cs_open() with error returned: %u\n", err);
 			return;
+		}
+
+		cs_option(handle, CS_OPT_DETAIL, CS_OPT_ON);
 
 		size_t count = cs_disasm_dyn(handle, platforms[i].code, platforms[i].size, address, 0, &insn);
 		if (count) {

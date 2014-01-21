@@ -20,13 +20,13 @@
 
 #include "AArch64InstPrinter.h"
 #include "AArch64BaseInfo.h"
+#include "../../utils.h"
 #include "../../MCInst.h"
 #include "../../SStream.h"
 #include "../../MCRegisterInfo.h"
 #include "../../MathExtras.h"
-#include "../../utils.h"
 
-#include "mapping.h"
+#include "AArch64Mapping.h"
 
 static char *getRegisterName(unsigned RegNo);
 static void printOperand(MCInst *MI, unsigned OpNo, SStream *O);
@@ -441,8 +441,7 @@ static void printMoveWideImmOperand(MCInst *MI,  unsigned OpNum, SStream *O)
 	}
 }
 
-static void printNamedImmOperand(NamedImmMapper *Mapper,
-		MCInst *MI, unsigned OpNum, SStream *O)
+static void printNamedImmOperand(MCInst *MI, unsigned OpNum, SStream *O, NamedImmMapper *Mapper)
 {
 	bool ValidName;
 	MCOperand *MO = MCInst_getOperand(MI, OpNum);
@@ -570,14 +569,22 @@ static void printSImm7ScaledOperand(MCInst *MI, unsigned OpNum,
 static void printVPRRegister(MCInst *MI, unsigned OpNo, SStream *O)
 {
 	unsigned Reg = MCOperand_getReg(MCInst_getOperand(MI, OpNo));
-	char *Name = strdup(getRegisterName(Reg));
+	char *Name = cs_strdup(getRegisterName(Reg));
 	Name[0] = 'v';
 	SStream_concat(O, "%s", Name);
+<<<<<<< HEAD
 	free(Name);
 	if (MI->detail) {
 		MI->pub_insn.arm64.operands[MI->pub_insn.arm64.op_count].type = ARM64_OP_REG;
 		MI->pub_insn.arm64.operands[MI->pub_insn.arm64.op_count].reg = Reg;
 		MI->pub_insn.arm64.op_count++;
+=======
+	cs_mem_free(Name);
+	if (MI->csh->detail) {
+		MI->flat_insn.arm64.operands[MI->flat_insn.arm64.op_count].type = ARM64_OP_REG;
+		MI->flat_insn.arm64.operands[MI->flat_insn.arm64.op_count].reg = Reg;
+		MI->flat_insn.arm64.op_count++;
+>>>>>>> upstream/master
 	}
 }
 
@@ -771,7 +778,7 @@ static void printMSROperand(MCInst *MI, unsigned OpNum, SStream *O)
 //   (2) {Vn.layout - Vm.layout}
 // We choose the first kind as output.
 static void printVectorList(MCInst *MI, unsigned OpNum,
-		SStream *O, MCRegisterInfo *MRI, A64Layout_VectorLayout Layout, unsigned Count)
+		SStream *O, A64Layout_VectorLayout Layout, unsigned Count, MCRegisterInfo *MRI)
 {
 	//assert(Count >= 1 && Count <= 4 && "Invalid Number of Vectors");
 
@@ -783,18 +790,18 @@ static void printVectorList(MCInst *MI, unsigned OpNum,
 		unsigned SubRegIdx = IsVec64 ? AArch64_dsub_0 : AArch64_qsub_0;
 		unsigned I;
 		for (I = 0; I < Count; I++) {
-			char *Name = strdup(getRegisterName(MCRegisterInfo_getSubReg(MRI, Reg, SubRegIdx++)));
+			char *Name = cs_strdup(getRegisterName(MCRegisterInfo_getSubReg(MRI, Reg, SubRegIdx++)));
 			Name[0] = 'v';
 			SStream_concat(O, "%s%s", Name, LayoutStr);
 			if (I != Count - 1)
 				SStream_concat(O, ", ");
-			free(Name);
+			cs_mem_free(Name);
 		}
 	} else { // Print the register directly when NumVecs is 1.
-		char *Name = strdup(getRegisterName(Reg));
+		char *Name = cs_strdup(getRegisterName(Reg));
 		Name[0] = 'v';
 		SStream_concat(O, "%s%s", Name, LayoutStr);
-		free(Name);
+		cs_mem_free(Name);
 	}
 	SStream_concat(O, "}");
 }
@@ -812,7 +819,7 @@ void AArch64_post_printer(csh handle, cs_insn *pub_insn, char *insn_asm)
 void AArch64_printInst(MCInst *MI, SStream *O, void *Info)
 {
 	if (printAliasInstr(MI, O, Info)) {
-		char *mnem = strdup(O->buffer);
+		char *mnem = cs_strdup(O->buffer);
 		char *tab = strchr(mnem, '\t');
 		if (tab) {
 			*tab = '\0';
@@ -821,8 +828,8 @@ void AArch64_printInst(MCInst *MI, SStream *O, void *Info)
 		unsigned int id = AArch64_map_insn(mnem);
 		MCInst_setOpcode(MI, AArch64_get_insn_id2(id));
 		MCInst_setOpcodePub(MI, id);
-		free(mnem);
+		cs_mem_free(mnem);
 	} else
-		AArch64InstPrinter_printInstruction(MI, O, Info);
+		printInstruction(MI, O, Info);
 }
 

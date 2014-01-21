@@ -28,11 +28,19 @@ public class Capstone {
   protected static abstract class OpInfo {}
   protected static abstract class UnionOpInfo extends Structure {}
 
+<<<<<<< HEAD
   protected static int max(int a, int b, int c, int d) {
     if (a<b) a = b;
     if (c<d) c = d;
     if (a<c) a = c;
     return a;
+=======
+    public Arm.UnionOpInfo arm;
+    public Arm64.UnionOpInfo arm64;
+    public X86.UnionOpInfo x86;
+    public Mips.UnionOpInfo mips;
+    public Ppc.UnionOpInfo ppc;
+>>>>>>> upstream/master
   }
 
   protected static class _cs_insn extends Structure {
@@ -52,10 +60,18 @@ public class Capstone {
     public _cs_insn(Pointer p) {
       bytes = new byte[16];
       mnemonic = new byte[32];
+<<<<<<< HEAD
       operands = new byte[96];
       regs_read = new int[32];
       regs_write = new int[32];
       groups = new int[8];
+=======
+      operands = new byte[160];
+    }
+
+    public _cs_insn(Pointer p) {
+      this();
+>>>>>>> upstream/master
       useMemory(p);
       read();
     }
@@ -114,8 +130,44 @@ public class Capstone {
         // = max( Arm.UnionOpInfo.getSize(), Arm64.UnionOpInfo.getSize(), Mips.UnionOpInfo.getSize(), X86.UnionOpInfo.getSize() );
     }
 
+<<<<<<< HEAD
     protected int size() {
       return _size;
+=======
+    private OpInfo getOptInfo(_cs_detail detail) {
+      OpInfo op_info = null;
+
+      switch (this.arch) {
+        case CS_ARCH_ARM:
+          detail.arch.setType(Arm.UnionOpInfo.class);
+          detail.arch.read();
+          op_info = new Arm.OpInfo((Arm.UnionOpInfo) detail.arch.arm);
+          break;
+        case CS_ARCH_ARM64:
+          detail.arch.setType(Arm64.UnionOpInfo.class);
+          detail.arch.read();
+          op_info = new Arm64.OpInfo((Arm64.UnionOpInfo) detail.arch.arm64);
+          break;
+        case CS_ARCH_MIPS:
+          detail.arch.setType(Mips.UnionOpInfo.class);
+          detail.arch.read();
+          op_info = new Mips.OpInfo((Mips.UnionOpInfo) detail.arch.mips);
+          break;
+        case CS_ARCH_X86:
+          detail.arch.setType(X86.UnionOpInfo.class);
+          detail.arch.read();
+          op_info = new X86.OpInfo((X86.UnionOpInfo) detail.arch.x86);
+          break;
+        case CS_ARCH_PPC:
+          detail.arch.setType(Ppc.UnionOpInfo.class);
+          detail.arch.read();
+          op_info = new Ppc.OpInfo((Ppc.UnionOpInfo) detail.arch.ppc);
+          break;
+        default:
+      }
+
+      return op_info;
+>>>>>>> upstream/master
     }
 
     public int opCount(int type) {
@@ -214,13 +266,14 @@ public class Capstone {
   }
 
   // capstone API version
-  public static final int CS_API_MAJOR = 1;
+  public static final int CS_API_MAJOR = 2;
   public static final int CS_API_MINOR = 0;
 
   public static final int CS_ARCH_ARM = 0;
   public static final int CS_ARCH_ARM64 = 1;
   public static final int CS_ARCH_MIPS = 2;
   public static final int CS_ARCH_X86 = 3;
+  public static final int CS_ARCH_PPC = 4;
 
   public static final int CS_MODE_LITTLE_ENDIAN = 0;  // default mode
   public static final int CS_MODE_ARM = 0;	          // 32-bit ARM
@@ -245,10 +298,11 @@ public class Capstone {
   public static final int CS_OPT_DETAIL = 2;  // Break down instruction structure into details
 
   //Capstone option value
-  public static final int CS_OPT_OFF = 0;  // Turn OFF an option (CS_OPT_DETAIL)
+  public static final int CS_OPT_OFF = 0;  // Turn OFF an option - default option of CS_OPT_DETAIL
   public static final int CS_OPT_SYNTAX_INTEL = 1;  // Intel X86 asm syntax - default syntax on X86 (CS_OPT_SYNTAX,  CS_ARCH_X86)
   public static final int CS_OPT_SYNTAX_ATT = 2;    // ATT asm syntax (CS_OPT_SYNTAX, CS_ARCH_X86)
-  public static final int CS_OPT_ON = 3;  // Turn ON an option - this is default option for CS_OPT_DETAIL
+  public static final int CS_OPT_ON = 3;  // Turn ON an option (CS_OPT_DETAIL)
+  public static final int CS_OPT_SYNTAX_NOREGNAME = 3; // PPC asm syntax: Prints register name with only number (CS_OPT_SYNTAX)
 
   protected class NativeStruct {
       private NativeLong csh;
@@ -269,6 +323,7 @@ public class Capstone {
       throw new RuntimeException("ERROR: Wrong arch or mode");
     }
     ns.csh = ns.handleRef.getValue();
+    this.detail = CS_OPT_OFF;
   }
 
   public void setSyntax(int syntax) {

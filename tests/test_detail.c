@@ -142,13 +142,16 @@ static void test()
 	int i;
 
 	for (i = 0; i < sizeof(platforms)/sizeof(platforms[0]); i++) {
-		if (cs_open(platforms[i].arch, platforms[i].mode, &handle))
+		cs_err err = cs_open(platforms[i].arch, platforms[i].mode, &handle);
+		if (err) {
+			printf("Failed on cs_open() with error returned: %u\n", err);
 			return;
+		}
 
 		if (platforms[i].opt_type)
 			cs_option(handle, platforms[i].opt_type, platforms[i].opt_value);
 
-		//cs_option(handle, CS_OPT_DETAIL, CS_OPT_OFF);
+		cs_option(handle, CS_OPT_DETAIL, CS_OPT_ON);
 
 		//size_t count = cs_disasm(handle, platforms[i].code, platforms[i].size, address, 0, all_insn);
 		size_t count = cs_disasm_dyn(handle, platforms[i].code, platforms[i].size, address, 0, &all_insn);
@@ -167,28 +170,50 @@ static void test()
 						i->id, cs_insn_name(handle, i->id));
 
 				// print implicit registers used by this instruction
+<<<<<<< HEAD
 				if (i->regs_read_count > 0) {
 					printf("\tImplicit registers read: ");
 					for (n = 0; n < i->regs_read_count; n++) {
 						printf("%s ", cs_reg_name(handle, i->regs_read[n]));
+=======
+				cs_detail *detail = i->detail;
+				if (detail->regs_read_count > 0) {
+					printf("\tImplicit registers read: ");
+					for (n = 0; n < detail->regs_read_count; n++) {
+						printf("%s ", cs_reg_name(handle, detail->regs_read[n]));
+>>>>>>> upstream/master
 					}
 					printf("\n");
 				}
 
 				// print implicit registers modified by this instruction
+<<<<<<< HEAD
 				if (i->regs_write_count > 0) {
 					printf("\tImplicit registers modified: ");
 					for (n = 0; n < i->regs_write_count; n++) {
 						printf("%s ", cs_reg_name(handle, i->regs_write[n]));
+=======
+				if (detail->regs_write_count > 0) {
+					printf("\tImplicit registers modified: ");
+					for (n = 0; n < detail->regs_write_count; n++) {
+						printf("%s ", cs_reg_name(handle, detail->regs_write[n]));
+>>>>>>> upstream/master
 					}
 					printf("\n");
 				}
 
 				// print the groups this instruction belong to
+<<<<<<< HEAD
 				if (i->groups_count > 0) {
 					printf("\tThis instruction belongs to groups: ");
 					for (n = 0; n < i->groups_count; n++) {
 						printf("%u ", i->groups[n]);
+=======
+				if (detail->groups_count > 0) {
+					printf("\tThis instruction belongs to groups: ");
+					for (n = 0; n < detail->groups_count; n++) {
+						printf("%u ", detail->groups[n]);
+>>>>>>> upstream/master
 					}
 					printf("\n");
 				}

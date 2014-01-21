@@ -3,11 +3,10 @@
 
 #include <string.h>
 
-#include "mapping.h"
+#include "X86Mapping.h"
 #include "X86DisassemblerDecoder.h"
 
 #include "../../utils.h"
-#include "../../cs_priv.h"
 #include "../../include/x86.h"
 
 static x86_reg sib_base_map[] = {
@@ -1610,7 +1609,7 @@ static insn_map insns[] = {
 	{ X86_AAM8i8, X86_INS_AAM, { 0 }, { 0 }, { X86_GRP_MODE32, 0 }, 0, 0 },
 	{ X86_AAS, X86_INS_AAS, { 0 }, { 0 }, { X86_GRP_MODE32, 0 }, 0, 0 },
 	{ X86_ABS_F, X86_INS_FABS, { 0 }, { X86_REG_FPSW, 0 }, { 0 }, 0, 0 },
-	{ X86_ADC16i16, X86_INS_ADC, { X86_REG_AX, X86_REG_EFLAGS, 0 }, { X86_REG_AX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_ADC16i16, X86_INS_ADC, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADC16mi, X86_INS_ADC, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADC16mi8, X86_INS_ADC, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADC16mr, X86_INS_ADC, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -1619,7 +1618,7 @@ static insn_map insns[] = {
 	{ X86_ADC16rm, X86_INS_ADC, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADC16rr, X86_INS_ADC, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADC16rr_REV, X86_INS_ADC, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_ADC32i32, X86_INS_ADC, { X86_REG_EAX, X86_REG_EFLAGS, 0 }, { X86_REG_EAX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_ADC32i32, X86_INS_ADC, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADC32mi, X86_INS_ADC, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADC32mi8, X86_INS_ADC, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADC32mr, X86_INS_ADC, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -1628,7 +1627,7 @@ static insn_map insns[] = {
 	{ X86_ADC32rm, X86_INS_ADC, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADC32rr, X86_INS_ADC, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADC32rr_REV, X86_INS_ADC, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_ADC64i32, X86_INS_ADC, { X86_REG_RAX, X86_REG_EFLAGS, 0 }, { X86_REG_RAX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_ADC64i32, X86_INS_ADC, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADC64mi32, X86_INS_ADC, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADC64mi8, X86_INS_ADC, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADC64mr, X86_INS_ADC, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -1637,7 +1636,7 @@ static insn_map insns[] = {
 	{ X86_ADC64rm, X86_INS_ADC, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADC64rr, X86_INS_ADC, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADC64rr_REV, X86_INS_ADC, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_ADC8i8, X86_INS_ADC, { X86_REG_AL, X86_REG_EFLAGS, 0 }, { X86_REG_AL, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_ADC8i8, X86_INS_ADC, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADC8mi, X86_INS_ADC, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADC8mr, X86_INS_ADC, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADC8ri, X86_INS_ADC, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -1648,7 +1647,7 @@ static insn_map insns[] = {
 	{ X86_ADCX32rr, X86_INS_ADCX, { 0 }, { X86_REG_EFLAGS, 0 }, { X86_GRP_ADX, 0 }, 0, 0 },
 	{ X86_ADCX64rm, X86_INS_ADCX, { 0 }, { X86_REG_EFLAGS, 0 }, { X86_GRP_ADX, 0 }, 0, 0 },
 	{ X86_ADCX64rr, X86_INS_ADCX, { 0 }, { X86_REG_EFLAGS, 0 }, { X86_GRP_ADX, 0 }, 0, 0 },
-	{ X86_ADD16i16, X86_INS_ADD, { X86_REG_AX, 0 }, { X86_REG_AX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_ADD16i16, X86_INS_ADD, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADD16mi, X86_INS_ADD, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADD16mi8, X86_INS_ADD, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADD16mr, X86_INS_ADD, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -1657,7 +1656,7 @@ static insn_map insns[] = {
 	{ X86_ADD16rm, X86_INS_ADD, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADD16rr, X86_INS_ADD, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADD16rr_REV, X86_INS_ADD, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_ADD32i32, X86_INS_ADD, { X86_REG_EAX, 0 }, { X86_REG_EAX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_ADD32i32, X86_INS_ADD, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADD32mi, X86_INS_ADD, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADD32mi8, X86_INS_ADD, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADD32mr, X86_INS_ADD, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -1666,7 +1665,7 @@ static insn_map insns[] = {
 	{ X86_ADD32rm, X86_INS_ADD, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADD32rr, X86_INS_ADD, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADD32rr_REV, X86_INS_ADD, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_ADD64i32, X86_INS_ADD, { X86_REG_RAX, 0 }, { X86_REG_RAX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_ADD64i32, X86_INS_ADD, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADD64mi32, X86_INS_ADD, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADD64mi8, X86_INS_ADD, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADD64mr, X86_INS_ADD, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -1675,7 +1674,7 @@ static insn_map insns[] = {
 	{ X86_ADD64rm, X86_INS_ADD, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADD64rr, X86_INS_ADD, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADD64rr_REV, X86_INS_ADD, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_ADD8i8, X86_INS_ADD, { X86_REG_AL, 0 }, { X86_REG_AL, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_ADD8i8, X86_INS_ADD, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADD8mi, X86_INS_ADD, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADD8mr, X86_INS_ADD, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_ADD8ri, X86_INS_ADD, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -1721,7 +1720,7 @@ static insn_map insns[] = {
 	{ X86_AESIMCrr, X86_INS_AESIMC, { 0 }, { 0 }, { X86_GRP_AES, 0 }, 0, 0 },
 	{ X86_AESKEYGENASSIST128rm, X86_INS_AESKEYGENASSIST, { 0 }, { 0 }, { X86_GRP_AES, 0 }, 0, 0 },
 	{ X86_AESKEYGENASSIST128rr, X86_INS_AESKEYGENASSIST, { 0 }, { 0 }, { X86_GRP_AES, 0 }, 0, 0 },
-	{ X86_AND16i16, X86_INS_AND, { X86_REG_AX, 0 }, { X86_REG_AX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_AND16i16, X86_INS_AND, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_AND16mi, X86_INS_AND, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_AND16mi8, X86_INS_AND, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_AND16mr, X86_INS_AND, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -1730,7 +1729,7 @@ static insn_map insns[] = {
 	{ X86_AND16rm, X86_INS_AND, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_AND16rr, X86_INS_AND, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_AND16rr_REV, X86_INS_AND, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_AND32i32, X86_INS_AND, { X86_REG_EAX, 0 }, { X86_REG_EAX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_AND32i32, X86_INS_AND, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_AND32mi, X86_INS_AND, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_AND32mi8, X86_INS_AND, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_AND32mr, X86_INS_AND, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -1739,7 +1738,7 @@ static insn_map insns[] = {
 	{ X86_AND32rm, X86_INS_AND, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_AND32rr, X86_INS_AND, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_AND32rr_REV, X86_INS_AND, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_AND64i32, X86_INS_AND, { X86_REG_RAX, 0 }, { X86_REG_RAX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_AND64i32, X86_INS_AND, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_AND64mi32, X86_INS_AND, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_AND64mi8, X86_INS_AND, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_AND64mr, X86_INS_AND, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -1748,7 +1747,7 @@ static insn_map insns[] = {
 	{ X86_AND64rm, X86_INS_AND, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_AND64rr, X86_INS_AND, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_AND64rr_REV, X86_INS_AND, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_AND8i8, X86_INS_AND, { X86_REG_AL, 0 }, { X86_REG_AL, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_AND8i8, X86_INS_AND, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_AND8mi, X86_INS_AND, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_AND8mr, X86_INS_AND, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_AND8ri, X86_INS_AND, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -2016,7 +2015,7 @@ static insn_map insns[] = {
 	{ X86_CMOVS32rr, X86_INS_CMOVS, { X86_REG_EFLAGS, 0 }, { 0 }, { X86_GRP_CMOV, 0 }, 0, 0 },
 	{ X86_CMOVS64rm, X86_INS_CMOVS, { X86_REG_EFLAGS, 0 }, { 0 }, { X86_GRP_CMOV, 0 }, 0, 0 },
 	{ X86_CMOVS64rr, X86_INS_CMOVS, { X86_REG_EFLAGS, 0 }, { 0 }, { X86_GRP_CMOV, 0 }, 0, 0 },
-	{ X86_CMP16i16, X86_INS_CMP, { X86_REG_AX, 0 }, { X86_REG_AX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_CMP16i16, X86_INS_CMP, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_CMP16mi, X86_INS_CMP, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_CMP16mi8, X86_INS_CMP, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_CMP16mr, X86_INS_CMP, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -2025,7 +2024,7 @@ static insn_map insns[] = {
 	{ X86_CMP16rm, X86_INS_CMP, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_CMP16rr, X86_INS_CMP, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_CMP16rr_REV, X86_INS_CMP, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_CMP32i32, X86_INS_CMP, { X86_REG_EAX, 0 }, { X86_REG_EAX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_CMP32i32, X86_INS_CMP, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_CMP32mi, X86_INS_CMP, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_CMP32mi8, X86_INS_CMP, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_CMP32mr, X86_INS_CMP, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -2034,7 +2033,7 @@ static insn_map insns[] = {
 	{ X86_CMP32rm, X86_INS_CMP, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_CMP32rr, X86_INS_CMP, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_CMP32rr_REV, X86_INS_CMP, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_CMP64i32, X86_INS_CMP, { X86_REG_RAX, 0 }, { X86_REG_RAX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_CMP64i32, X86_INS_CMP, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_CMP64mi32, X86_INS_CMP, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_CMP64mi8, X86_INS_CMP, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_CMP64mr, X86_INS_CMP, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -2043,7 +2042,7 @@ static insn_map insns[] = {
 	{ X86_CMP64rm, X86_INS_CMP, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_CMP64rr, X86_INS_CMP, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_CMP64rr_REV, X86_INS_CMP, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_CMP8i8, X86_INS_CMP, { X86_REG_AL, 0 }, { X86_REG_AL, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_CMP8i8, X86_INS_CMP, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_CMP8mi, X86_INS_CMP, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_CMP8mr, X86_INS_CMP, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_CMP8ri, X86_INS_CMP, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -3148,7 +3147,7 @@ static insn_map insns[] = {
 	{ X86_NOT64r, X86_INS_NOT, { 0 }, { 0 }, { 0 }, 0, 0 },
 	{ X86_NOT8m, X86_INS_NOT, { 0 }, { 0 }, { 0 }, 0, 0 },
 	{ X86_NOT8r, X86_INS_NOT, { 0 }, { 0 }, { 0 }, 0, 0 },
-	{ X86_OR16i16, X86_INS_OR, { X86_REG_AX, 0 }, { X86_REG_AX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_OR16i16, X86_INS_OR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_OR16mi, X86_INS_OR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_OR16mi8, X86_INS_OR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_OR16mr, X86_INS_OR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -3157,7 +3156,7 @@ static insn_map insns[] = {
 	{ X86_OR16rm, X86_INS_OR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_OR16rr, X86_INS_OR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_OR16rr_REV, X86_INS_OR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_OR32i32, X86_INS_OR, { X86_REG_EAX, 0 }, { X86_REG_EAX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_OR32i32, X86_INS_OR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_OR32mi, X86_INS_OR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_OR32mi8, X86_INS_OR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_OR32mr, X86_INS_OR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -3167,7 +3166,7 @@ static insn_map insns[] = {
 	{ X86_OR32rm, X86_INS_OR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_OR32rr, X86_INS_OR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_OR32rr_REV, X86_INS_OR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_OR64i32, X86_INS_OR, { X86_REG_RAX, 0 }, { X86_REG_RAX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_OR64i32, X86_INS_OR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_OR64mi32, X86_INS_OR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_OR64mi8, X86_INS_OR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_OR64mr, X86_INS_OR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -3176,7 +3175,7 @@ static insn_map insns[] = {
 	{ X86_OR64rm, X86_INS_OR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_OR64rr, X86_INS_OR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_OR64rr_REV, X86_INS_OR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_OR8i8, X86_INS_OR, { X86_REG_AL, 0 }, { X86_REG_AL, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_OR8i8, X86_INS_OR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_OR8mi, X86_INS_OR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_OR8mr, X86_INS_OR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_OR8ri, X86_INS_OR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -3762,7 +3761,7 @@ static insn_map insns[] = {
 	{ X86_SARX32rr, X86_INS_SARX, { 0 }, { 0 }, { X86_GRP_BMI2, 0 }, 0, 0 },
 	{ X86_SARX64rm, X86_INS_SARX, { 0 }, { 0 }, { X86_GRP_BMI2, 0 }, 0, 0 },
 	{ X86_SARX64rr, X86_INS_SARX, { 0 }, { 0 }, { X86_GRP_BMI2, 0 }, 0, 0 },
-	{ X86_SBB16i16, X86_INS_SBB, { X86_REG_AX, X86_REG_EFLAGS, 0 }, { X86_REG_AX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_SBB16i16, X86_INS_SBB, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SBB16mi, X86_INS_SBB, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SBB16mi8, X86_INS_SBB, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SBB16mr, X86_INS_SBB, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -3771,7 +3770,7 @@ static insn_map insns[] = {
 	{ X86_SBB16rm, X86_INS_SBB, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SBB16rr, X86_INS_SBB, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SBB16rr_REV, X86_INS_SBB, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_SBB32i32, X86_INS_SBB, { X86_REG_EAX, X86_REG_EFLAGS, 0 }, { X86_REG_EAX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_SBB32i32, X86_INS_SBB, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SBB32mi, X86_INS_SBB, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SBB32mi8, X86_INS_SBB, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SBB32mr, X86_INS_SBB, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -3780,7 +3779,7 @@ static insn_map insns[] = {
 	{ X86_SBB32rm, X86_INS_SBB, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SBB32rr, X86_INS_SBB, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SBB32rr_REV, X86_INS_SBB, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_SBB64i32, X86_INS_SBB, { X86_REG_RAX, X86_REG_EFLAGS, 0 }, { X86_REG_RAX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_SBB64i32, X86_INS_SBB, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SBB64mi32, X86_INS_SBB, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SBB64mi8, X86_INS_SBB, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SBB64mr, X86_INS_SBB, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -3789,7 +3788,7 @@ static insn_map insns[] = {
 	{ X86_SBB64rm, X86_INS_SBB, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SBB64rr, X86_INS_SBB, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SBB64rr_REV, X86_INS_SBB, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_SBB8i8, X86_INS_SBB, { X86_REG_AL, X86_REG_EFLAGS, 0 }, { X86_REG_AL, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_SBB8i8, X86_INS_SBB, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SBB8mi, X86_INS_SBB, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SBB8mr, X86_INS_SBB, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SBB8ri, X86_INS_SBB, { X86_REG_EFLAGS, 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -3981,7 +3980,7 @@ static insn_map insns[] = {
 	{ X86_ST_FP80m, X86_INS_FSTP, { 0 }, { X86_REG_FPSW, 0 }, { 0 }, 0, 0 },
 	{ X86_ST_FPrr, X86_INS_FSTP, { 0 }, { X86_REG_FPSW, 0 }, { 0 }, 0, 0 },
 	{ X86_ST_Frr, X86_INS_FST, { 0 }, { X86_REG_FPSW, 0 }, { 0 }, 0, 0 },
-	{ X86_SUB16i16, X86_INS_SUB, { X86_REG_AX, 0 }, { X86_REG_AX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_SUB16i16, X86_INS_SUB, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SUB16mi, X86_INS_SUB, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SUB16mi8, X86_INS_SUB, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SUB16mr, X86_INS_SUB, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -3990,7 +3989,7 @@ static insn_map insns[] = {
 	{ X86_SUB16rm, X86_INS_SUB, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SUB16rr, X86_INS_SUB, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SUB16rr_REV, X86_INS_SUB, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_SUB32i32, X86_INS_SUB, { X86_REG_EAX, 0 }, { X86_REG_EAX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_SUB32i32, X86_INS_SUB, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SUB32mi, X86_INS_SUB, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SUB32mi8, X86_INS_SUB, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SUB32mr, X86_INS_SUB, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -3999,7 +3998,7 @@ static insn_map insns[] = {
 	{ X86_SUB32rm, X86_INS_SUB, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SUB32rr, X86_INS_SUB, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SUB32rr_REV, X86_INS_SUB, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_SUB64i32, X86_INS_SUB, { X86_REG_RAX, 0 }, { X86_REG_RAX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_SUB64i32, X86_INS_SUB, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SUB64mi32, X86_INS_SUB, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SUB64mi8, X86_INS_SUB, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SUB64mr, X86_INS_SUB, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -4008,7 +4007,7 @@ static insn_map insns[] = {
 	{ X86_SUB64rm, X86_INS_SUB, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SUB64rr, X86_INS_SUB, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SUB64rr_REV, X86_INS_SUB, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_SUB8i8, X86_INS_SUB, { X86_REG_AL, 0 }, { X86_REG_AL, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_SUB8i8, X86_INS_SUB, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SUB8mi, X86_INS_SUB, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SUB8mr, X86_INS_SUB, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_SUB8ri, X86_INS_SUB, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -4052,22 +4051,22 @@ static insn_map insns[] = {
 	{ X86_T1MSKC32rr, X86_INS_T1MSKC, { 0 }, { X86_REG_EFLAGS, 0 }, { X86_GRP_TBM, 0 }, 0, 0 },
 	{ X86_T1MSKC64rm, X86_INS_T1MSKC, { 0 }, { X86_REG_EFLAGS, 0 }, { X86_GRP_TBM, 0 }, 0, 0 },
 	{ X86_T1MSKC64rr, X86_INS_T1MSKC, { 0 }, { X86_REG_EFLAGS, 0 }, { X86_GRP_TBM, 0 }, 0, 0 },
-	{ X86_TEST16i16, X86_INS_TEST, { X86_REG_AX, 0 }, { X86_REG_AX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_TEST16i16, X86_INS_TEST, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_TEST16mi, X86_INS_TEST, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_TEST16ri, X86_INS_TEST, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_TEST16rm, X86_INS_TEST, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_TEST16rr, X86_INS_TEST, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_TEST32i32, X86_INS_TEST, { X86_REG_EAX, 0 }, { X86_REG_EAX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_TEST32i32, X86_INS_TEST, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_TEST32mi, X86_INS_TEST, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_TEST32ri, X86_INS_TEST, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_TEST32rm, X86_INS_TEST, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_TEST32rr, X86_INS_TEST, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_TEST64i32, X86_INS_TEST, { X86_REG_RAX, 0 }, { X86_REG_RAX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_TEST64i32, X86_INS_TEST, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_TEST64mi32, X86_INS_TEST, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_TEST64ri32, X86_INS_TEST, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_TEST64rm, X86_INS_TEST, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_TEST64rr, X86_INS_TEST, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_TEST8i8, X86_INS_TEST, { X86_REG_AL, 0 }, { X86_REG_AL, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_TEST8i8, X86_INS_TEST, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_TEST8mi, X86_INS_TEST, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_TEST8ri, X86_INS_TEST, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_TEST8rm, X86_INS_TEST, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -6538,7 +6537,7 @@ static insn_map insns[] = {
 	{ X86_XEND, X86_INS_XEND, { 0 }, { 0 }, { X86_GRP_RTM, 0 }, 0, 0 },
 	{ X86_XGETBV, X86_INS_XGETBV, { X86_REG_RCX, 0 }, { X86_REG_RDX, X86_REG_RAX, 0 }, { 0 }, 0, 0 },
 	{ X86_XLAT, X86_INS_XLATB, { 0 }, { 0 }, { 0 }, 0, 0 },
-	{ X86_XOR16i16, X86_INS_XOR, { X86_REG_AX, 0 }, { X86_REG_AX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_XOR16i16, X86_INS_XOR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_XOR16mi, X86_INS_XOR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_XOR16mi8, X86_INS_XOR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_XOR16mr, X86_INS_XOR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -6547,7 +6546,7 @@ static insn_map insns[] = {
 	{ X86_XOR16rm, X86_INS_XOR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_XOR16rr, X86_INS_XOR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_XOR16rr_REV, X86_INS_XOR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_XOR32i32, X86_INS_XOR, { X86_REG_EAX, 0 }, { X86_REG_EAX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_XOR32i32, X86_INS_XOR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_XOR32mi, X86_INS_XOR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_XOR32mi8, X86_INS_XOR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_XOR32mr, X86_INS_XOR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -6556,7 +6555,7 @@ static insn_map insns[] = {
 	{ X86_XOR32rm, X86_INS_XOR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_XOR32rr, X86_INS_XOR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_XOR32rr_REV, X86_INS_XOR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_XOR64i32, X86_INS_XOR, { X86_REG_RAX, 0 }, { X86_REG_RAX, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_XOR64i32, X86_INS_XOR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_XOR64mi32, X86_INS_XOR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_XOR64mi8, X86_INS_XOR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_XOR64mr, X86_INS_XOR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -6565,7 +6564,7 @@ static insn_map insns[] = {
 	{ X86_XOR64rm, X86_INS_XOR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_XOR64rr, X86_INS_XOR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_XOR64rr_REV, X86_INS_XOR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
-	{ X86_XOR8i8, X86_INS_XOR, { X86_REG_AL, 0 }, { X86_REG_AL, X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
+	{ X86_XOR8i8, X86_INS_XOR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_XOR8mi, X86_INS_XOR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_XOR8mr, X86_INS_XOR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
 	{ X86_XOR8ri, X86_INS_XOR, { 0 }, { X86_REG_EFLAGS, 0 }, { 0 }, 0, 0 },
@@ -6605,8 +6604,9 @@ void X86_post_printer(csh handle, cs_insn *insn, char *insn_asm)
 }
 
 // given internal insn id, return public instruction info
-void X86_get_insn_id(cs_insn *insn, unsigned int id, int detail)
+void X86_get_insn_id(cs_struct *h, cs_insn *insn, unsigned int id)
 {
+<<<<<<< HEAD:arch/X86/mapping.c
 	int i = insn_find(insns, ARR_SIZE(insns), id);
 	if (i != -1) {
 		insn->id = insns[i].mapid;
@@ -6614,6 +6614,15 @@ void X86_get_insn_id(cs_insn *insn, unsigned int id, int detail)
 		if (detail) {
 			memcpy(insn->regs_read, insns[i].regs_use, sizeof(insns[i].regs_use));
 			insn->regs_read_count = count_positive(insns[i].regs_use);
+=======
+	int i = insn_find(insns, ARR_SIZE(insns), id, &h->insn_cache);
+	if (i != 0) {
+		insn->id = insns[i].mapid;
+
+		if (h->detail) {
+			memcpy(insn->detail->regs_read, insns[i].regs_use, sizeof(insns[i].regs_use));
+			insn->detail->regs_read_count = count_positive(insns[i].regs_use);
+>>>>>>> upstream/master:arch/X86/X86Mapping.c
 
 			memcpy(insn->regs_write, insns[i].regs_mod, sizeof(insns[i].regs_mod));
 			insn->regs_write_count = count_positive(insns[i].regs_mod);
@@ -6636,3 +6645,48 @@ unsigned int X86_get_insn_id2(unsigned int id)
 	return insn_reverse_id(insns, ARR_SIZE(insns), id);
 }
 
+<<<<<<< HEAD:arch/X86/mapping.c
+=======
+// can this instruction combine with prev prefix instruction?
+// this also updates h->pre_prefix if needed
+bool X86_insn_check_combine(cs_struct *h, cs_insn *insn)
+{
+	// is this a prefix instruction?
+	if (insn->id == X86_INS_LOCK || insn->id == X86_INS_REP ||
+		insn->id == X86_INS_REPNE) {
+		// then save this as prev_prefix
+		h->prev_prefix = insn->id;
+		return false;
+	}
+
+	// if the previous instruction is a prefix, then OK to combine with this
+	if (h->prev_prefix) {
+		return true;
+	}
+
+	// cannot combine this with a prefix
+	return false;
+}
+
+// combine this instruction with previous prefix instruction
+void X86_insn_combine(cs_struct *h, cs_insn *insn, cs_insn *prev)
+{
+	// reset prev_prefix
+	h->prev_prefix = 0;
+
+	// copy information from insn to prev
+	prev->id = insn->id;
+	prev->size += insn->size;
+	memmove(prev->bytes+1, insn->bytes, sizeof(insn->bytes) - 1);
+	strcat(prev->mnemonic, " ");
+	strcat(prev->mnemonic, insn->mnemonic);
+	strcpy(prev->op_str, insn->op_str);
+
+	if (h->detail) {
+		// save old prefix to copy it back later
+		uint8_t prefix = prev->detail->x86.opcode[0];
+		memmove(prev->detail, insn->detail, sizeof(cs_detail));
+		prev->detail->x86.prefix[0] = prefix;
+	}
+}
+>>>>>>> upstream/master:arch/X86/X86Mapping.c

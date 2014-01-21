@@ -24,14 +24,15 @@
 #include "../../utils.h"
 #include "../../MCInst.h"
 #include "../../SStream.h"
+#include "../../MCRegisterInfo.h"
 
-#include "mapping.h"
+#include "X86Mapping.h"
 
 static void printMemReference(MCInst *MI, unsigned Op, SStream *O);
 
 static void printopaquemem(MCInst *MI, unsigned OpNo, SStream *O)
 {
-	SStream_concat(O, "opaque ptr ");
+	SStream_concat(O, "ptr ");
 	printMemReference(MI, OpNo, O);
 }
 
@@ -216,22 +217,22 @@ static bool get_first_op(char *buffer, char *firstop)
 }
 
 static bool printAliasInstr(MCInst *MI, SStream *OS);
-static void printInstruction(MCInst *MI, SStream *O);
+static void printInstruction(MCInst *MI, SStream *O, MCRegisterInfo *MRI);
 void X86_Intel_printInst(MCInst *MI, SStream *O, void *Info)
 {
 	//if (TSFlags & X86II::LOCK)
 	//  O << "\tlock\n";
 
 	if (printAliasInstr(MI, O)) {
-		char *mnem = strdup(O->buffer);
+		char *mnem = cs_strdup(O->buffer);
 		char *tab = strchr(mnem, '\t');
 		if (tab)
 			*tab = '\0';
 		// reflect the new insn name (alias) in the opcode
 		MCInst_setOpcode(MI, X86_get_insn_id2(X86_map_insn(mnem)));
-		free(mnem);
+		cs_mem_free(mnem);
 	} else
-		printInstruction(MI, O);
+		printInstruction(MI, O, NULL);
 
 	if (MI->detail) {
 		char tmp[64];
@@ -239,11 +240,21 @@ void X86_Intel_printInst(MCInst *MI, SStream *O, void *Info)
 			int post;
 			char *acc_regs[] = {"al", "ax", "eax", "rax", NULL};
 			if (tmp[0] != 0 && ((post = str_in_list(acc_regs, tmp)) != -1)) {
+<<<<<<< HEAD
 				// set operand size following register size
 				MI->pub_insn.x86.op_size = 1 << post;
 				// tmp is a register
 				if (MI->pub_insn.x86.operands[0].type != X86_OP_INVALID &&
 						MI->pub_insn.x86.operands[0].type != X86_OP_REG) {
+=======
+				// first op is register, so set operand size following register size
+				MI->flat_insn.x86.op_size = 1 << post;
+				// tmp is a register
+				if ((MI->flat_insn.x86.operands[0].type != X86_OP_INVALID) &&
+						((MI->flat_insn.x86.operands[0].type != X86_OP_REG) ||
+						(MI->flat_insn.x86.operands[0].reg != acc_regs_id[post]))) {
+					// first op is register, so insert its detail to position 0
+>>>>>>> upstream/master
 					int i;
 					for (i = MI->pub_insn.x86.op_count; i > 0; i--) {
 						memcpy(&(MI->pub_insn.x86.operands[i]), &(MI->pub_insn.x86.operands[i - 1]),

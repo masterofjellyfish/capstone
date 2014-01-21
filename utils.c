@@ -23,6 +23,7 @@ int str_in_list(char **list, char *s)
 // binary searching
 int insn_find(insn_map *m, unsigned int max, unsigned int id)
 {
+<<<<<<< HEAD
 	unsigned int i, begin, end;
 
 	begin = 0;
@@ -37,6 +38,29 @@ int insn_find(insn_map *m, unsigned int max, unsigned int id)
 		else
 			begin = i + 1;
 	}
+=======
+	// NOTE: assume that the max id is always put at the end of insns array
+	unsigned short max_id = insns[size - 1].id;
+	unsigned int i;
+
+	unsigned short *cache = (unsigned short *)cs_mem_calloc(sizeof(*cache), max_id + 1);
+
+	for (i = 1; i < size; i++)
+		cache[insns[i].id] = i;
+
+	return cache;
+}
+
+// look for @id in @insns, given its size in @max. first time call will update @cache.
+// return 0 if not found
+unsigned short insn_find(insn_map *insns, unsigned int max, unsigned int id, unsigned short **cache)
+{
+	if (id > insns[max - 1].id)
+		return 0;
+
+	if (*cache == NULL)
+		*cache = make_id2insn(insns, max);
+>>>>>>> upstream/master
 
 	// found nothing
 	return -1;
@@ -78,4 +102,15 @@ unsigned int count_positive(unsigned int *list)
 	for (c = 0; list[c] > 0; c++);
 
 	return c;
+}
+
+char *cs_strdup(const char *str)
+{
+	size_t len = strlen(str)+ 1;
+	void *new = cs_mem_malloc(len);
+
+	if (new == NULL)
+		return NULL;
+
+	return (char *)memmove(new, str, len);
 }

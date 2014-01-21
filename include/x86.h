@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 #ifndef __CS_X86_H__
 #define __CS_X86_H__
+=======
+#ifndef CAPSTONE_X86_H
+#define CAPSTONE_X86_H
+>>>>>>> upstream/master
 
 /* Capstone Disassembler Engine */
 /* By Nguyen Anh Quynh <aquynh@gmail.com>, 2013> */

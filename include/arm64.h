@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 #ifndef __CS_ARM64_H__
 #define __CS_ARM64_H__
+=======
+#ifndef CAPSTONE_ARM64_H
+#define CAPSTONE_ARM64_H
+>>>>>>> upstream/master
 
 /* Capstone Disassembler Engine */
 /* By Nguyen Anh Quynh <aquynh@gmail.com>, 2013> */

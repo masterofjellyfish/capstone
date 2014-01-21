@@ -28,6 +28,11 @@ all_tests = (
         (CS_ARCH_MIPS, CS_MODE_32 + CS_MODE_BIG_ENDIAN, MIPS_CODE, "MIPS-32 (Big-endian)", 0),
         (CS_ARCH_MIPS, CS_MODE_64+ CS_MODE_LITTLE_ENDIAN, MIPS_CODE2, "MIPS-64-EL (Little-endian)", 0),
         (CS_ARCH_ARM64, CS_MODE_ARM, ARM64_CODE, "ARM-64", 0),
+<<<<<<< HEAD
+=======
+        (CS_ARCH_PPC, CS_MODE_BIG_ENDIAN, PPC_CODE, "PPC-64", 0),
+        (CS_ARCH_PPC, CS_MODE_BIG_ENDIAN, PPC_CODE, "PPC-64, print register with number only", CS_OPT_SYNTAX_NOREGNAME),
+>>>>>>> upstream/master
         )
 
 
@@ -57,7 +62,6 @@ def test_class():
 
         try:
             md = Cs(arch, mode)
-            # md.detail = False
 
             if syntax != 0:
                 md.syntax = syntax

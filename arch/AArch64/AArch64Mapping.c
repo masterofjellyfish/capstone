@@ -7,7 +7,7 @@
 #include "../../include/arm64.h"
 #include "../../utils.h"
 
-#include "mapping.h"
+#include "AArch64Mapping.h"
 
 #define GET_INSTRINFO_ENUM
 #include "AArch64GenInstrInfo.inc"
@@ -2989,6 +2989,7 @@ static insn_map alias_insns[] = {
 	// { AArch64_SUBSxxx_lsl, ARM64_INS_NEGS, { 0 }, { ARM64_REG_NZCV, 0 }, { 0 } },
 };
 
+<<<<<<< HEAD:arch/AArch64/mapping.c
 void AArch64_get_insn_id(cs_insn *insn, unsigned int id, int detail)
 {
 	int i = insn_find(insns, ARR_SIZE(insns), id);
@@ -2998,6 +2999,21 @@ void AArch64_get_insn_id(cs_insn *insn, unsigned int id, int detail)
 		if (detail) {
 			memcpy(insn->regs_read, insns[i].regs_use, sizeof(insns[i].regs_use));
 			insn->regs_read_count = count_positive(insns[i].regs_use);
+=======
+// given internal insn id, return public instruction info
+void AArch64_get_insn_id(cs_struct *h, cs_insn *insn, unsigned int id)
+{
+	int i = insn_find(insns, ARR_SIZE(insns), id, &h->insn_cache);
+	if (i != 0) {
+		insn->id = insns[i].mapid;
+
+		if (h->detail) {
+			cs_struct handle;
+			handle.detail = h->detail;
+
+			memcpy(insn->detail->regs_read, insns[i].regs_use, sizeof(insns[i].regs_use));
+			insn->detail->regs_read_count = count_positive(insns[i].regs_use);
+>>>>>>> upstream/master:arch/AArch64/AArch64Mapping.c
 
 			memcpy(insn->regs_write, insns[i].regs_mod, sizeof(insns[i].regs_mod));
 			insn->regs_write_count = count_positive(insns[i].regs_mod);
@@ -3498,14 +3514,18 @@ const char *AArch64_insn_name(csh handle, unsigned int id)
 	if (id >= ARM64_INS_MAX)
 		return NULL;
 
-	// try with alias insn first
+	if (id < ARR_SIZE(insn_name_maps))
+		return insn_name_maps[id].name;
+
+	// then find alias insn
 	int i;
 	for (i = 0; i < ARR_SIZE(alias_insn_name_maps); i++) {
 		if (alias_insn_name_maps[i].id == id)
 			return alias_insn_name_maps[i].name;
 	}
 
-	return insn_name_maps[id].name;
+	// not found
+	return NULL;
 }
 
 // map instruction name to public instruction ID
@@ -3520,4 +3540,7 @@ arm64_reg AArch64_map_insn(const char *name)
 
 	return (i != -1)? i : ARM64_REG_INVALID;
 }
+<<<<<<< HEAD:arch/AArch64/mapping.c
 
+=======
+>>>>>>> upstream/master:arch/AArch64/AArch64Mapping.c

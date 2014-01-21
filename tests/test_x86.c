@@ -166,14 +166,23 @@ static void test()
 	int i;
 
 	for (i = 0; i < sizeof(platforms)/sizeof(platforms[0]); i++) {
-		if (cs_open(platforms[i].arch, platforms[i].mode, &handle))
+		cs_err err = cs_open(platforms[i].arch, platforms[i].mode, &handle);
+		if (err) {
+			printf("Failed on cs_open() with error returned: %u\n", err);
 			return;
+		}
 
 		if (platforms[i].opt_type)
 			cs_option(handle, platforms[i].opt_type, platforms[i].opt_value);
 
+<<<<<<< HEAD
 		//size_t count = cs_disasm(handle, platforms[i].code, platforms[i].size, address, 0, insn);
 		size_t count = cs_disasm_dyn(handle, platforms[i].code, platforms[i].size, address, 0, &insn);
+=======
+		cs_option(handle, CS_OPT_DETAIL, CS_OPT_ON);
+
+		size_t count = cs_disasm_ex(handle, platforms[i].code, platforms[i].size, address, 0, &insn);
+>>>>>>> upstream/master
 		if (count) {
 			printf("****************\n");
 			printf("Platform: %s\n", platforms[i].comment);

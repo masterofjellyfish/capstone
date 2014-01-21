@@ -1,12 +1,29 @@
 # Capstone Disassembler Engine
 # By Nguyen Anh Quynh <aquynh@gmail.com>, 2013>
 
+<<<<<<< HEAD
+=======
+include config.mk
+
+ifeq ($(CROSS),)
+CC ?= cc
+AR ?= ar
+RANLIB ?= ranlib
+STRIP ?= strip
+else
+>>>>>>> upstream/master
 CC = $(CROSS)gcc
-AR ?= $(CROSS)ar
-RANLIB ?= $(CROSS)ranlib
-STRIP ?= $(CROSS)strip
+AR = $(CROSS)ar
+RANLIB = $(CROSS)ranlib
+STRIP = $(CROSS)strip
+endif
 
 CFLAGS += -fPIC -O3 -Wall -Iinclude
+
+ifeq ($(USE_SYS_DYN_MEM),yes)
+CFLAGS += -DUSE_SYS_DYN_MEM
+endif
+
 LDFLAGS += -shared
 
 PREFIX ?= /usr
@@ -14,17 +31,61 @@ DESTDIR ?=
 INCDIR = $(DESTDIR)$(PREFIX)/include
 LIBDIR = $(DESTDIR)$(PREFIX)/lib
 
-INSTALL_DATA ?= install -m0644
-INSTALL_LIBRARY ?= install -m0755
+INSTALL_BIN ?= install
+INSTALL_DATA ?= $(INSTALL_BIN) -m0644
+INSTALL_LIBRARY ?= $(INSTALL_BIN) -m0755
 
 LIBNAME = capstone
 
 LIBOBJ =
 LIBOBJ += cs.o utils.o SStream.o MCInstrDesc.o MCRegisterInfo.o
+<<<<<<< HEAD
 LIBOBJ += arch/Mips/MipsDisassembler.o arch/Mips/MipsInstPrinter.o arch/Mips/mapping.o
 LIBOBJ += arch/AArch64/AArch64BaseInfo.o arch/AArch64/AArch64Disassembler.o arch/AArch64/AArch64InstPrinter.o arch/AArch64/mapping.o
 LIBOBJ += arch/ARM/ARMDisassembler.o arch/ARM/ARMInstPrinter.o arch/ARM/mapping.o
 LIBOBJ += arch/X86/X86DisassemblerDecoder.o arch/X86/X86Disassembler.o arch/X86/X86IntelInstPrinter.o arch/X86/X86ATTInstPrinter.o arch/X86/mapping.o
+=======
+
+ifneq (,$(findstring x86,$(CAPSTONE_ARCHS)))
+	CFLAGS += -DCAPSTONE_HAS_X86
+	LIBOBJ += arch/X86/X86DisassemblerDecoder.o
+	LIBOBJ += arch/X86/X86Disassembler.o
+	LIBOBJ += arch/X86/X86IntelInstPrinter.o
+	LIBOBJ += arch/X86/X86ATTInstPrinter.o
+	LIBOBJ += arch/X86/X86Mapping.o
+	LIBOBJ += arch/X86/X86Module.o
+endif
+ifneq (,$(findstring arm,$(CAPSTONE_ARCHS)))
+	CFLAGS += -DCAPSTONE_HAS_ARM
+	LIBOBJ += arch/ARM/ARMDisassembler.o
+	LIBOBJ += arch/ARM/ARMInstPrinter.o
+	LIBOBJ += arch/ARM/ARMMapping.o
+	LIBOBJ += arch/ARM/ARMModule.o
+endif
+ifneq (,$(findstring mips,$(CAPSTONE_ARCHS)))
+	CFLAGS += -DCAPSTONE_HAS_MIPS
+	LIBOBJ += arch/Mips/MipsDisassembler.o
+	LIBOBJ += arch/Mips/MipsInstPrinter.o
+	LIBOBJ += arch/Mips/MipsMapping.o
+	LIBOBJ += arch/Mips/MipsModule.o
+endif
+ifneq (,$(findstring powerpc,$(CAPSTONE_ARCHS)))
+	CFLAGS += -DCAPSTONE_HAS_POWERPC
+	LIBOBJ += arch/PowerPC/PPCDisassembler.o
+	LIBOBJ += arch/PowerPC/PPCInstPrinter.o
+	LIBOBJ += arch/PowerPC/PPCMapping.o
+	LIBOBJ += arch/PowerPC/PPCModule.o
+endif
+ifneq (,$(findstring aarch64,$(CAPSTONE_ARCHS)))
+	CFLAGS += -DCAPSTONE_HAS_ARM64
+	LIBOBJ += arch/AArch64/AArch64BaseInfo.o
+	LIBOBJ += arch/AArch64/AArch64Disassembler.o
+	LIBOBJ += arch/AArch64/AArch64InstPrinter.o
+	LIBOBJ += arch/AArch64/AArch64Mapping.o
+	LIBOBJ += arch/AArch64/AArch64Module.o
+endif
+
+>>>>>>> upstream/master
 LIBOBJ += MCInst.o
 
 EXT = so
@@ -104,12 +165,22 @@ uninstall:
 
 clean:
 	rm -f $(LIBOBJ) lib$(LIBNAME).*
-	#cd bindings/ruby; $(MAKE) clean; rm -rf Makefile
+	rm -f $(PKGCFGF)
 	$(MAKE) -C bindings/python clean
-	$(MAKE) -C bindings/csharp clean
 	$(MAKE) -C bindings/java clean
 	$(MAKE) -C bindings/ocaml clean
 	$(MAKE) -C tests clean
+
+
+TAG ?= HEAD
+ifeq ($(TAG), HEAD)
+DIST_VERSION = latest
+else
+DIST_VERSION = $(TAG)
+endif
+
+dist:
+	git archive --format=tar.gz --prefix=capstone-$(DIST_VERSION)/ $(TAG) > capstone-$(DIST_VERSION).tar.gz
 
 .c.o:
 	$(CC) $(CFLAGS) -c $< -o $@
