@@ -1,16 +1,13 @@
-﻿// Capstone C# bindings
-// By Matt Graeber <@mattifestation>, 2013>
-
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Capstone.Mips
+namespace Capstone.PowerPC
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct OpMem
     {
         public REG Base;
-        public long Disp;
+        public int Disp;
     }
 
     [StructLayout(LayoutKind.Explicit)]
@@ -19,7 +16,7 @@ namespace Capstone.Mips
         [FieldOffset(0)]
         public REG Reg;
         [FieldOffset(0)]
-        public long Imm;
+        public int Imm;
         [FieldOffset(0)]
         public OpMem Mem;
     }
@@ -32,8 +29,12 @@ namespace Capstone.Mips
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct CsMips
+    public struct CsPowerPC
     {
+        public BC Bc;
+        public BH Bh;
+        [MarshalAs(UnmanagedType.U1)]
+        public bool UpdateCR0;
         private byte OpCount;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
         private Operand[] OperandsInternal;

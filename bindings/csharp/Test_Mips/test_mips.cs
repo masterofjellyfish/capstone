@@ -41,7 +41,7 @@ public class TestMips
     {
         Capstone.Mips.CsMips arch = (Capstone.Mips.CsMips)insn.Arch;
 
-        byte opcount = arch.OpCount;
+        int opcount = arch.Operands.Length;
 
         if (opcount > 0)
         {

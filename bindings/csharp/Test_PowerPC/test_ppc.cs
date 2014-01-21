@@ -6,7 +6,7 @@ using System.Text;
 using System.Runtime.InteropServices;
 using Capstone;
 
-public class TestArm64
+public class TestPowerPC
 {
     struct platform
     {
@@ -39,7 +39,7 @@ public class TestArm64
 
     internal static void PrintInsnDetail(Mode mode, Instruction insn)
     {
-        Capstone.Arm64.CsArm64 arch = (Capstone.Arm64.CsArm64) insn.Arch;
+        Capstone.PowerPC.CsPowerPC arch = (Capstone.PowerPC.CsPowerPC) insn.Arch;
 
         int opcount = arch.Operands.Length;
 
@@ -52,30 +52,18 @@ public class TestArm64
                 Console.WriteLine("\t\tOperand[" + i + "]: " + arch.Operands[i].Type);
                 switch (arch.Operands[i].Type)
                 {
-                    case Capstone.Arm64.OP.REG:
+                    case Capstone.PowerPC.OP.REG:
                         Console.WriteLine("\t\t\tRegister: " + arch.Operands[i].Value.Reg);
                         break;
-                    case Capstone.Arm64.OP.IMM:
+                    case Capstone.PowerPC.OP.IMM:
                         Console.WriteLine("\t\t\tImmediate: 0x" +
                             arch.Operands[i].Value.Imm.ToString("X"));
                         break;
-                    case Capstone.Arm64.OP.CIMM:
-                        Console.WriteLine("\t\t\tC-Immediate: " +
-                            arch.Operands[i].Value.Imm);
-                        break;
-                    case Capstone.Arm64.OP.FP:
-                        Console.WriteLine("\t\t\tFloating Point: " + arch.Operands[i].Value.Fp);
-                        break;
-                    case Capstone.Arm64.OP.MEM:
+                    case Capstone.PowerPC.OP.MEM:
                         if (arch.Operands[i].Value.Mem.Base != 0)
                         {
                             Console.WriteLine("\t\t\tOperand[" + i + "].Mem.Base: " +
                                 arch.Operands[i].Value.Mem.Base);
-                        }
-                        if (arch.Operands[i].Value.Mem.Index != 0)
-                        {
-                            Console.WriteLine("\t\t\tOperand[" + i + "].Mem.Index: " +
-                                arch.Operands[i].Value.Mem.Index);
                         }
                         if (arch.Operands[i].Value.Mem.Disp != 0)
                         {
@@ -84,42 +72,28 @@ public class TestArm64
                         }
                         break;
                 }
-
-                if ((arch.Operands[i].Shift.Type != Capstone.Arm64.SFT.INVALID) &&
-                    arch.Operands[i].Shift.Value != 0)
-                {
-                    Console.WriteLine("\t\tShift Type: " + arch.Operands[i].Shift.Type +
-                        ", Value: " + arch.Operands[i].Shift.Value);
-                }
-                if (arch.Operands[i].Ext != Capstone.Arm64.EXT.INVALID)
-                {
-                    Console.WriteLine("\t\tExt: " + arch.Operands[i].Ext);
-                }
             }
         }
 
-        if (arch.UpdateFlags) { Console.WriteLine("\tUpdate-flags: True"); }
-        if (arch.Writeback) { Console.WriteLine("\tWrite-back: True"); }
-        if ((arch.Cc != Capstone.Arm64.CC.AL) && (arch.Cc != Capstone.Arm64.CC.INVALID))
-        {
-            Console.WriteLine("\tCode condition: " + arch.Cc);
-        }
+        if (arch.Bc != 0) { Console.WriteLine("\tBranch code: " + arch.Bc); }
+        if (arch.Bh != 0) { Console.WriteLine("\tBranch hint: " + arch.Bh); }
+        if (arch.UpdateCR0) { Console.WriteLine("\tUpdate-CR0: True"); }
     }
 
     public static void Main()
     {
-        byte[] arm64Code = new byte[] { 0x21, 0x7c, 0x02, 0x9b, 0x21, 0x7c, 0x00, 0x53, 0x00, 0x40, 0x21, 0x4b, 0xe1, 0x0b, 0x40, 0xb9, 0x20, 0x04, 0x81, 0xda, 0x20, 0x08, 0x02, 0x8b };
+        byte[] PowerPCCode = new byte[] { 0x80, 0x20, 0x00, 0x00, 0x80, 0x3f, 0x00, 0x00, 0x10, 0x43, 0x23, 0x0e, 0xd0, 0x44, 0x00, 0x80, 0x4c, 0x43, 0x22, 0x02, 0x2d, 0x03, 0x00, 0x80, 0x7c, 0x43, 0x20, 0x14, 0x7c, 0x43, 0x20, 0x93, 0x4f, 0x20, 0x00, 0x21, 0x4c, 0xc8, 0x00, 0x21 };
 
         uint address = 0x1000;
         UIntPtr insnCount = UIntPtr.Zero;
 
         platform[] platforms = {
 			new platform(
-					Architecture.Arm64,
-					Mode.Arm,
-                    OptionValue.Off,
-					arm64Code,
-                    "ARM-64"
+					Architecture.PPC,
+					Mode.BigEndian,
+                    OptionValue.SyntaxDefault,
+					PowerPCCode,
+                    "PPC-64"
 			)
 		};
 
@@ -132,6 +106,7 @@ public class TestArm64
 
             Capstone.Capstone cs = new Capstone.Capstone(platforms[j].arch, platforms[j].mode);
             cs.SetSyntax(platforms[j].syntax);
+            cs.SetDetail(true);
             Instruction[] insns = cs.Disassemble(platforms[j].code, address, insnCount);
             for (int i = 0; i < insns.Length; i++)
             {

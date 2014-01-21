@@ -63,7 +63,7 @@ public class TestX86
             }
         }
 
-        byte opcount = arch.OpCount;
+        int opcount = arch.Operands.Length;
 
         if (opcount > 0)
         {
