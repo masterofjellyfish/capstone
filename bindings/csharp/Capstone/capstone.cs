@@ -207,6 +207,36 @@ namespace Capstone
                 return new Version(major, minor);
             }
         }
+<<<<<<< HEAD
+=======
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct _Insn
+        {
+            public uint id;
+            public ulong address;
+            public ushort size;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
+            public byte[] bytes;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+            public string mnemonic;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 160)]
+            public string operands;
+            public IntPtr detail;
+        }
+        [StructLayout(LayoutKind.Sequential, Size = 48)]
+        internal struct _InsnDetail
+        {
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 12)]
+            public byte[] regs_read;
+            public byte regs_read_count;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 20)]
+            public byte[] regs_write;
+            public byte regs_write_count;
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
+            public byte[] groups;
+            public byte groups_count;
+        }
+>>>>>>> 90be5b5... Updated C# binding to reflect 2.0RC1 changes
 
         public Capstone(Architecture arch, Mode mode)
         {

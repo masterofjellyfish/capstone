@@ -52,7 +52,7 @@ namespace Capstone.Arm
         [MarshalAs(UnmanagedType.U1)]
         public bool Writeback;
         public byte OpCount;
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 20)]
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 36)]
         public Operand[] Operands;
     }
 }
