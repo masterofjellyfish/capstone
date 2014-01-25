@@ -95,6 +95,7 @@ namespace Capstone
 
     public class Capstone : IDisposable
     {
+        public static Version BindingVersion = new Version("2.0");
         private bool _disposed;
         private UIntPtr _handle;
         private ErrorCode _status;
