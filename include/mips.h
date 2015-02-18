@@ -1,5 +1,10 @@
+<<<<<<< HEAD
+#ifndef __CS_MIPS_H__
+#define __CS_MIPS_H__
+=======
 #ifndef CAPSTONE_MIPS_H
 #define CAPSTONE_MIPS_H
+>>>>>>> upstream/master
 
 /* Capstone Disassembly Engine */
 /* By Nguyen Anh Quynh <aquynh@gmail.com>, 2013-2014 */

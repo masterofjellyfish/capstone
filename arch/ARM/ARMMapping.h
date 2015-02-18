@@ -19,7 +19,11 @@ const char *ARM_insn_name(csh handle, unsigned int id);
 const char *ARM_group_name(csh handle, unsigned int id);
 
 // check if this insn is relative branch
+<<<<<<< HEAD:arch/ARM/mapping.h
+bool ARM_rel_branch(unsigned int insn_id);
+=======
 bool ARM_rel_branch(cs_struct *h, unsigned int insn_id);
+>>>>>>> upstream/master:arch/ARM/ARMMapping.h
 
 bool ARM_blx_to_arm_mode(cs_struct *h, unsigned int insn_id);
 

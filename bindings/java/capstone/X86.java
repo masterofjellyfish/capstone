@@ -4,7 +4,9 @@
 package capstone;
 
 import com.sun.jna.Structure;
+import com.sun.jna.Pointer;
 import com.sun.jna.Union;
+import com.sun.jna.NativeLong;
 
 import java.util.List;
 import java.util.Arrays;
@@ -90,6 +92,18 @@ public class X86 {
       op = new Operand[8];
       opcode = new byte[4];
       prefix = new byte[4];
+    }
+
+    public UnionOpInfo(Pointer p) {
+      op = new Operand[8];
+      opcode = new byte[3];
+      prefix = new byte[5];
+      useMemory(p);
+      read();
+    }
+
+    public static int getSize() {
+      return (new UnionOpInfo()).size();
     }
 
     @Override

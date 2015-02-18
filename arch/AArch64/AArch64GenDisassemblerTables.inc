@@ -12666,6 +12666,105 @@ static DecodeStatus fname(DecodeStatus S, unsigned Idx, InsnType insn, MCInst *M
   } \
 } 
 
+<<<<<<< HEAD
+static DecodeStatus decodeInstruction(const uint8_t DecodeTable[], MCInst *MI,
+                                      uint32_t insn, uint64_t Address,
+                                      MCRegisterInfo *MRI)
+{
+  //uint64_t Bits = 0;
+  uint64_t Bits = AArch64_getFeatureBits();
+
+  const uint8_t *Ptr = DecodeTable;
+  uint32_t CurFieldValue = 0;
+  DecodeStatus S = MCDisassembler_Success;
+  for (;;) {
+    //ptrdiff_t Loc = Ptr - DecodeTable;
+	// printf(">> Loc: %lu\n", Ptr - DecodeTable);
+    switch (*Ptr) {
+    default:
+      //errs() << Loc << ": Unexpected decode table opcode!\n";
+      return MCDisassembler_Fail;
+    case MCD_OPC_ExtractField: {
+      unsigned Start = *++Ptr;
+      unsigned Len = *++Ptr;
+      ++Ptr;
+      CurFieldValue = fieldFromInstruction(insn, Start, Len);
+
+      break;
+    }
+    case MCD_OPC_FilterValue: {
+      // Decode the field value.
+      unsigned Len;
+      uint32_t Val = decodeULEB128(++Ptr, &Len);
+      Ptr += Len;
+      // NumToSkip is a plain 16-bit integer.
+      unsigned NumToSkip = *Ptr++;
+      NumToSkip |= (*Ptr++) << 8;
+
+      // Perform the filter operation.
+      if (Val != CurFieldValue)
+        Ptr += NumToSkip;
+
+      break;
+    }
+    case MCD_OPC_CheckField: {
+      unsigned Start = *++Ptr;
+      unsigned Len = *++Ptr;
+      uint32_t FieldValue = fieldFromInstruction(insn, Start, Len);
+      // Decode the field value.
+      uint32_t ExpectedValue = decodeULEB128(++Ptr, &Len);
+      Ptr += Len;
+      // NumToSkip is a plain 16-bit integer.
+      unsigned NumToSkip = *Ptr++;
+      NumToSkip |= (*Ptr++) << 8;
+
+      // If the actual and expected values don't match, skip.
+      if (ExpectedValue != FieldValue)
+        Ptr += NumToSkip;
+      break;
+    }
+    case MCD_OPC_CheckPredicate: {
+      unsigned Len;
+      // Decode the Predicate Index value.
+      unsigned PIdx = decodeULEB128(++Ptr, &Len);
+      Ptr += Len;
+      // NumToSkip is a plain 16-bit integer.
+      unsigned NumToSkip = *Ptr++;
+      NumToSkip |= (*Ptr++) << 8;
+      // Check the predicate.
+      bool Pred;
+      if (!(Pred = checkDecoderPredicate(PIdx, Bits)))
+        Ptr += NumToSkip;
+      (void)Pred;
+      break;
+    }
+    case MCD_OPC_Decode: {
+      unsigned Len;
+      // Decode the Opcode value.
+      unsigned Opc = decodeULEB128(++Ptr, &Len);
+      Ptr += Len;
+      unsigned DecodeIdx = decodeULEB128(Ptr, &Len);
+      MCInst_setOpcode(MI, Opc);
+      return decodeToMCInst(S, DecodeIdx, insn, MI, Address, MRI);
+    }
+    case MCD_OPC_SoftFail: {
+      // Decode the mask values.
+      unsigned Len;
+      uint32_t PositiveMask = decodeULEB128(++Ptr, &Len);
+      Ptr += Len;
+      uint32_t NegativeMask = decodeULEB128(Ptr, &Len);
+      Ptr += Len;
+      bool Fail = (insn & PositiveMask) || (~insn & NegativeMask);
+      if (Fail)
+        S = MCDisassembler_SoftFail;
+      break;
+    }
+    case MCD_OPC_Fail: {
+      return MCDisassembler_Fail;
+    }
+    }
+  }
+=======
 #define DecodeInstruction(fname, fieldname, decoder, InsnType) \
 static DecodeStatus fname(uint8_t DecodeTable[], MCInst *MI, \
            InsnType insn, uint64_t Address, MCRegisterInfo *MRI, int feature) \
@@ -12743,6 +12842,7 @@ static DecodeStatus fname(uint8_t DecodeTable[], MCInst *MI, \
     } \
     } \
   } \
+>>>>>>> upstream/master
 }
 
 FieldFromInstruction(fieldFromInstruction, uint32_t)

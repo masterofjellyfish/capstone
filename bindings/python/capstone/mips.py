@@ -23,19 +23,6 @@ class MipsOp(ctypes.Structure):
         ('value', MipsOpValue),
     )
 
-    @property
-    def imm(self):
-        return self.value.imm
-
-    @property
-    def reg(self):
-        return self.value.reg
-
-    @property
-    def mem(self):
-        return self.value.mem
-
-
 class CsMips(ctypes.Structure):
     _fields_ = (
         ('op_count', ctypes.c_uint8),

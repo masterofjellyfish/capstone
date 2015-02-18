@@ -14,8 +14,8 @@
 /* Capstone Disassembly Engine */
 /* By Nguyen Anh Quynh <aquynh@gmail.com>, 2013-2014 */
 
-#ifndef CS_X86_INSTPRINTER_H
-#define CS_X86_INSTPRINTER_H
+#ifndef SB_X86_INST_PRINTER_H
+#define SB_X86_INST_PRINTER_H
 
 #include "../../MCInst.h"
 #include "../../SStream.h"

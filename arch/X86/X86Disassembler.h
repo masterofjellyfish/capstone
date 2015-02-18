@@ -74,8 +74,8 @@
 /* Capstone Disassembly Engine */
 /* By Nguyen Anh Quynh <aquynh@gmail.com>, 2013-2014 */
 
-#ifndef CS_X86_DISASSEMBLER_H
-#define CS_X86_DISASSEMBLER_H
+#ifndef SB_X86DISASSEMBLER_H
+#define SB_X86DISASSEMBLER_H
 
 #include <stdint.h>
 
